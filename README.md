@@ -1,3 +1,3 @@
 ### data-etl
 
-prototyping API calls in notbeooks
+prototyping API calls in notebooks
