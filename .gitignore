@@ -16,6 +16,9 @@ ipython_config.py
 # Remove previous ipynb_checkpoints
 #   git rm -r .ipynb_checkpoints/
 
+### Data that was created during development and is redundant ###
+data-raw/z_archive
+
 ### MicrosoftOffice ###
 *.tmp
 
