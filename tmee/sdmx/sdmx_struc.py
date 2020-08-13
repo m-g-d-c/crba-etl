@@ -2,20 +2,34 @@
 # functions extracting basic information about an sdmx structure from a sdmx-json file
 
 
-# get number of dimensions from sdmx_json_struc file
 def get_sdmx_dim(sdmx_json_struc):
-    # number of dimensions in SDMX dataflow
+    """ get number of dimensions from sdmx_json_struc file """
     n_dim = len(sdmx_json_struc['structure']['dimensions']['observation'])
     return n_dim
 
 
-# Parse sdmx_json_struc file to get countries codes in sdmx dataflow
-# Input: country names list, sdmx JSON file with dataflow structure
-# Returns: dictionary, (keys) country names,(values) country codes for dataflow API requests
+def get_all_country_codes(sdmx_json_struc):
+    """ Parse sdmx_json_struc file and get all country codes in a sdmx dataflow
+    :param sdmx_json_struc: sdmx JSON file with dataflow structure
+    :return: dictionary, (keys) all country names,(values) all country codes from sdmx dataflow
+    """
+
+    country_code = {}
+    for elem in sdmx_json_struc['structure']['dimensions']['observation'][0]['values']:
+        country_code[elem['name']] = elem['id']
+    
+    # return dictionary sorted by keys
+    return {k:v for k,v in sorted(country_code.items())}
+
 
 from difflib import get_close_matches
 
-def get_country_code(country_list,sdmx_json_struc):
+def match_country_list(country_list,sdmx_json_struc):
+    """ Parse sdmx_json_struc file to match a country list to all country codes in sdmx dataflow
+    :param country_list: country names list
+    :param sdmx_json_struc: sdmx JSON file with dataflow structure
+    :return: dictionary, (keys) country names,(values) country codes that matches country list
+    """
 
     country_code = {}
     country_discard = {}
