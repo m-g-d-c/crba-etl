@@ -17,7 +17,7 @@ ipython_config.py
 #   git rm -r .ipynb_checkpoints/
 
 ### Data that was created during development and is redundant ###
-data-raw/z_archive
+*/z_archive
 
 ### MicrosoftOffice ###
 *.tmp
