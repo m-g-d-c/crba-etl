@@ -18,6 +18,7 @@ ipython_config.py
 
 ### Data that was created during development and is redundant ###
 */z_archive
+data/*/z_archive
 
 ### MicrosoftOffice ###
 *.tmp
