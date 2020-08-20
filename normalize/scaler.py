@@ -141,8 +141,8 @@ def scaler(raw_dataframe, indicator_raw_value, cat_var = False, cat_scoring_type
         # This is the section dealing with numerical indicators
 
         # Determine basic descriptive statistics of the distribution
-        min_val = min(raw_dataframe[indicator_raw_value].astype('float'))
-        max_val = max(raw_dataframe[indicator_raw_value].astype('float'))
+        min_val = np.nanmin(raw_dataframe[indicator_raw_value].astype('float'))
+        max_val = np.nanmax(raw_dataframe[indicator_raw_value].astype('float'))
         q1 =  raw_dataframe[indicator_raw_value].astype('float').quantile(q=0.25)
         q2 =  raw_dataframe[indicator_raw_value].astype('float').quantile(q=0.50)
         q3 =  raw_dataframe[indicator_raw_value].astype('float').quantile(q=0.75)                      
@@ -162,7 +162,7 @@ def scaler(raw_dataframe, indicator_raw_value, cat_var = False, cat_scoring_type
             print('The distribution of the raw data values contains outliers or is too skewed on the lower end. The minimum value to be used for the normalisation is the the 3rd quartile added to IQR multiplied by the the {}. It is: {} \n See histogram printed below for info. \n'.format(whisker_factor, min_to_use))
         else:
             min_to_use = min_val
-            print('The distribution of the raw data does not contain outliers or is too skewed on the lower end. The minimum value used for the normalisation is the maximum value in the dataset, which is {}. \n'.format(min_to_use))
+            print('The distribution of the raw data does not contain outliers or is too skewed on the lower end. The minimum value used for the normalisation is the minimum value in the dataset, which is {}. \n'.format(min_to_use))
         
         # If there are outliers or a skewed distribution, print the distribution for the user.
         if (min_val < q1 - whisker_factor * iqr) or (max_val > q3 + whisker_factor * iqr):
