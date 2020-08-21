@@ -151,18 +151,18 @@ def scaler(raw_dataframe, indicator_raw_value, cat_var = False, cat_scoring_type
         # Define what max value to use for the normalization            
         if max_val > q3 + whisker_factor * iqr:
             max_to_use = q3 + whisker_factor * iqr
-            print('The distribution of the raw data values contains outliers or is too skewed on the upper end. The maximum value to be used for the normalisation is the the 3rd quartile added to IQR multiplied by the {}. It is: {} \n See histogram printed below for info. \n'.format(whisker_factor, max_to_use))
+            print('The distribution of the raw data values contains outliers or is too skewed on the upper end. The maximum value to be used for the normalisation is: 3rd quartile or distribution + {} * IQR. It is: {} \n See histogram printed below for info. \n'.format(whisker_factor, max_to_use))
         else:
             max_to_use = max_val
-            print('The distribution of the raw data does not contain outliers on the upper end. The maximum value used for the normalisation is the maximum value in the dataset, which is {}. \n'.format(max_to_use))
+            print('The distribution of the raw data does not contain outliers or is too skewed on the upper end. The maximum value used for the normalisation is the maximum value in the dataset, which is {}. This value corresponds to country: {} \n'.format(max_to_use, raw_dataframe[raw_dataframe[indicator_raw_value].astype('float') == max_val].COUNTRY_NAME))
                       
         # Define what min value to use for the normalization
         if min_val < q1 - whisker_factor * iqr:
             min_to_use = q1 - whisker_factor * iqr
-            print('The distribution of the raw data values contains outliers or is too skewed on the lower end. The minimum value to be used for the normalisation is the the 3rd quartile added to IQR multiplied by the the {}. It is: {} \n See histogram printed below for info. \n'.format(whisker_factor, min_to_use))
+            print('The distribution of the raw data values contains outliers or is too skewed on the lower end. The minimum value to be used for the normalisation is 1st quartile or distribution - {} * IQR. It is: {} \n See histogram printed below for info. \n'.format(whisker_factor, min_to_use))
         else:
             min_to_use = min_val
-            print('The distribution of the raw data does not contain outliers or is too skewed on the lower end. The minimum value used for the normalisation is the minimum value in the dataset, which is {}. \n'.format(min_to_use))
+            print('The distribution of the raw data does not contain outliers or is too skewed on the lower end. The minimum value used for the normalisation is the minimum value in the dataset, which is {}. This value corresponds to country: {} \n'.format(min_to_use, raw_dataframe[raw_dataframe[indicator_raw_value].astype('float') == min_val].COUNTRY_NAME))
         
         # If there are outliers or a skewed distribution, print the distribution for the user.
         if (min_val < q1 - whisker_factor * iqr) or (max_val > q3 + whisker_factor * iqr):
