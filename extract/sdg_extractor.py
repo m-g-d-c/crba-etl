@@ -1,5 +1,9 @@
+import pandas as pd
+import json
+import requests
+
 def extract_sdg_api_data(series_code):
-    """Extract raw data for a series 
+    """Extract raw data for a series from the SDG API (UN STATS)
 
     Extract data on the specifies series as json and flatten it out into a pandas dataframe
     To retrieve the data from the API of the SDG indicators, you must proceed as follows: 
@@ -19,4 +23,6 @@ def extract_sdg_api_data(series_code):
 
    """
     url = 'https://unstats.un.org/SDGAPI/v1/sdg/Series/Data?seriesCode={}&pageSize=999999999'.format(series_code)
-    return(pd.json_normalize(requests.get(url).json()['data']))  
+    raw = pd.json_normalize(requests.get(url).json()['data'])
+    print('The extracted raw data contains the following columns: {}'.format(raw.columns))
+    return(raw)
