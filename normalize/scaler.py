@@ -160,6 +160,14 @@ def normalizer(cleansed_data, indicator_raw_value, cleansed_df_iso2_col, crba_fi
         # Create empty final dataframe before entering loop. The different subsets will be appended in this DF to obtain the full dataset incl. the scaled variable in the end
         cleansed_data_full = pd.DataFrame(columns = cleansed_data.columns.tolist())
 
+        # Inform what columns (which have not previously been excluded) have several values and therefore define a subset
+        print('You hve a selected a few columns, which will not be regarded as dimensions. These are the remaining columns in the dataset, along with the number of values they take in the dataset.')
+        tot_num_subsets = 1
+        for col in cleansed_data[non_essential_col]:
+            print('The column {} has {} unique values.'.format(col, cleansed_data[non_essential_col][col].nunique()))
+            tot_num_subsets *= cleansed_data[non_essential_col][col].nunique()
+        print('The total number of subgroups in the dataset is therefore: {}'.format(tot_num_subsets))
+
         # Loop: i) defining values of subsets to create ii) subsets , iii) calculate the scaled value for all of them and iv) append the subsets in one dataframe
         for j in range(1, length):
             # i) Create the defining values of the subset
