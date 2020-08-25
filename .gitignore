@@ -20,6 +20,9 @@ ipython_config.py
 */z_archive
 data/*/z_archive
 
+### Pycache files
+*.pyc
+
 ### MicrosoftOffice ###
 *.tmp
 
