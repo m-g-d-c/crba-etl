@@ -11,7 +11,7 @@ def cleanse_unesco_api_data(raw_data, raw_data_iso_2_col, country_df, country_df
     raw_data_iso_2_col (str): Name of the column in 'raw data' frame that contains the ISO2 country codes.
     country_df (obj): Dataframe containing the final CRBA list of countries
     country_df_iso2_col (str): Column in 'country_df', which contains the country iso2 codes.
-    non_dim_cols (list): List of columns, which should be excluded from the group by statement (that is, if a column is not indicated here, then the maximum value for each of its values will be calculated)
+    non_dim_cols (list): List of columns, which should be excluded from the group-by-statement (that is, if a column is not indicated here, then the maximum value for each of its values will be calculated)
 
     Returns:
     obj: Returns pandas dataframe, which only contains the countries meant to be in CRBA and the latest observed value for the indiator.
