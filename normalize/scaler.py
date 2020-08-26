@@ -1,12 +1,23 @@
 import pandas as pd
 import numpy as np
 
-def normalizer(cleansed_data, indicator_raw_value, cleansed_df_iso2_col, crba_final_country_list, crba_final_country_list_iso_col, cat_var = False, cat_scoring_type = None, inverted = False, non_dim_cols = None, whisker_factor = 1.5):
+def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_name, cleansed_df_iso2_col, crba_final_country_list, crba_final_country_list_iso_col, cat_var = False, cat_scoring_type = None, inverted = False, non_dim_cols = None, whisker_factor = 1.5):
     """ Transform cleansed datasets into scaled (normalized) data in long format
+
+    This function can be applied to any cleansed data. It requires as principal
+    object the dataframe containing the cleansed data of an indicator-source,
+    calculates the index score values (i.e. normalized values) for an indicator,
+     and returns the input dataframe with three additional columns "VALUE_TYPE",
+     "value", "INDICATOR_CODE" and "INDICATOR_NAME", which hold the normalized,
+    index-score for the indicator. Indicators can categorical or numerical,
+    which must be specified in the function call. For some indicators, the index
+     score must be inverted, which must be specified in the function call.
 
     Parameters:
     cleansed_data (obj): Raw dataset, pandas dataframe
     indicator_raw_value (str): Column containing the actual raw data values
+    indicator_code (str): Code of the indicator as stipulated in the data dictionary
+    indicator_name (str):  Name of the indicator as stipulated in the data dictionary
     cleansed_df_iso2_col (str): Column which holds the ISO2 code in 'cleansed_data'
     crba_final_country_list (obj): Final CRBA country list, should contain country ISO2 (primary key), ISO3 and country name columns.
     crba_final_country_list_iso_col (str): Column in crba_final_country_list which holds the ISO2 codes of the countries.
@@ -17,7 +28,7 @@ def normalizer(cleansed_data, indicator_raw_value, cleansed_df_iso2_col, crba_fi
     non_dim_cols (list): List of columns who are required to uniquely identify a row in the dataset. The normalization will be done for each dimension-subset there is.
 
     Returns:
-    obj: Returns numpy array with transformed values
+    obj: Returns pandas dataframe with normalized indicator scores in long format
     """
 
     # Check if an indicator is numeric of categorical
@@ -86,9 +97,6 @@ def normalizer(cleansed_data, indicator_raw_value, cleansed_df_iso2_col, crba_fi
             norm_values = ['0.00', '3.33', '6.67', '10.00']
 
 
-            # create a new column and use np.select to assign values to it using our lists as arguments
-            cleansed_data['SCALED'] = np.select(conditions, values)
-
         # Type 4-3-2-1-0
         elif cat_scoring_type == 'Type 4-3-2-1-0':
             # Specify the values the raw data can take
@@ -139,7 +147,7 @@ def normalizer(cleansed_data, indicator_raw_value, cleansed_df_iso2_col, crba_fi
         else:
             raise('The scoring type you have specified does not exist. Make sure your scoring type is listed in the documentation of this fuction.')
 
-        # create a new column and use np.select to assign values to it using our lists as arguments
+        # create a new column and assign values to it using our lists
         cleansed_data['SCALED'] = np.select(conditions, values)
 
     else:
@@ -245,9 +253,14 @@ def normalizer(cleansed_data, indicator_raw_value, cleansed_df_iso2_col, crba_fi
     kept_columns = [x for x in cleansed_data_full.columns.tolist() if x not in [indicator_raw_value, 'SCALED']]
 
         # Bring the dataframe from wide to long format and return it
-    return(
-        pd.melt(cleansed_data_full,
-           id_vars = kept_columns,
-           value_vars = [indicator_raw_value, 'SCALED'],
-           var_name = 'VALUE_TYPE')
-    )
+    long_format = pd.melt(cleansed_data_full,
+               id_vars = kept_columns,
+               value_vars = [indicator_raw_value, 'SCALED'],
+               var_name = 'VALUE_TYPE')
+
+        # Assign indicator code and name
+    long_format['INDICATOR_CODE'] = indicator_code
+    long_format['INDICATOR_NAME'] = indicator_name
+
+    #return final dataframe
+    return(long_format)
