@@ -220,7 +220,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
                 # If there are outliers or a skewed distribution, print the distribution for the user.
                 if (min_val < q1 - whisker_factor * iqr) or (max_val > q3 + whisker_factor * iqr):
                     print('\n This is the distribution of the raw data of the indicator.')
-                    print(cleansed_data_subset[indicator_raw_value].hist(bins = 30))
+                    print(pd.to_numeric(cleansed_data_subset[indicator_raw_value]).hist(bins = 30))
 
                 # Define the value range that is used for the scaling (normalization)
                 tot_range = max_val - min_val
@@ -247,6 +247,10 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
 
             except:
                 print('Dataframe is empty. There are no values to append.')
+
+          # Sanity Check: The resulting dataframe should always have 195 rows. NB: if you put the line of code before the above "Append the values" bit, Python throws and error
+        assert pd.to_numeric(cleansed_data_full.shape[0]) % 195 == 0, 'Number of rows should be a multiple of 195, but it is not. Check if all columns which should be part of the group by statement are listed'
+        print('The number of rows in the dataframe after the right join are: {}'.format(cleansed_data_full.shape))
 
     # Bring the final dataframe with scaled (normalized) values from wide to long format
         # Prepare the melting of the dataframe, by defining what columns remain untouched by the melt
