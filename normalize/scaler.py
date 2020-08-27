@@ -189,7 +189,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
 
             # Log: Inform user what subset the operations are being performed on
             print('In the loop we are currently dealing with the subset #{}, which has these defining values: {}'.format(j + 1, cleansed_data_subset[non_essential_col].drop_duplicates()))
-            print('\n The shape of the subset is: {}'.format(cleansed_data_subset.shape)) # DELETE
+            print('\n The shape of the subset is: {}'.format(cleansed_data_subset.shape))
 
             # Often, the subset will be empty dataframes, because they only consists of NaN values
             try:
