@@ -6,4 +6,6 @@ io
 difflib
 openpyxl
 pandas_datareader
+os
+re
 
