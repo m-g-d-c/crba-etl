@@ -153,7 +153,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
     else:
         # This is the section dealing with numerical indicators
         # If there are dimensions in the dataset (e.g. GENDER), then the normalization of the indicator score
-        # must be done for all subgroups of all dimensions. For that, we must extract these subsets in the original dataset
+        # must be done for all subgroups (ie. subsets) defined by the dimensions and their values. For that, we must extract these subsets in the original dataset
 
         # Extract the subsets (defined by the dimensions) of the data
             # Exclude columns which are are not a dimension or should not be part in defining a subset (i.e. they aren't part of a unique identifier of a row)
@@ -177,7 +177,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         print('The total number of subgroups in the dataset is therefore: {}'.format(tot_num_subsets))
 
         # Loop: i) defining values of subsets to create ii) subsets , iii) calculate the scaled value for all of them and iv) append the subsets in one dataframe
-        for j in range(1, length):
+        for j in range(0, length):
             # i) Create the defining values of the subset
             subset = ''
             for i in range(width):
@@ -188,7 +188,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
             cleansed_data_subset = cleansed_data[eval(subset)]
 
             # Log: Inform user what subset the operations are being performed on
-            print('In the loop we are currently dealing with the subset #{}, which has these defining values: {}'.format(j, cleansed_data_subset[non_essential_col].drop_duplicates()))
+            print('In the loop we are currently dealing with the subset #{}, which has these defining values: {}'.format(j + 1, cleansed_data_subset[non_essential_col].drop_duplicates()))
             print('\n The shape of the subset is: {}'.format(cleansed_data_subset.shape)) # DELETE
 
             # Often, the subset will be empty dataframes, because they only consists of NaN values
@@ -250,7 +250,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
 
           # Sanity Check: The resulting dataframe should always have 195 rows. NB: if you put the line of code before the above "Append the values" bit, Python throws and error
         assert pd.to_numeric(cleansed_data_full.shape[0]) % 195 == 0, 'Number of rows should be a multiple of 195, but it is not. Check if all columns which should be part of the group by statement are listed'
-        print('The number of rows in the dataframe after the right join are: {}'.format(cleansed_data_full.shape))
+        print('The number of rows of the final dataframe (before the conversion from wide to long format is) is divisible by 195. It is: {}'.format(cleansed_data_full.shape))
 
     # Bring the final dataframe with scaled (normalized) values from wide to long format
         # Prepare the melting of the dataframe, by defining what columns remain untouched by the melt
