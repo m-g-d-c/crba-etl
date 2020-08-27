@@ -21,6 +21,7 @@ ipython_config.py
 data/*/z_archive
 
 ### Pycache files
+__pycache__/
 *.pyc
 */*.pyc
 
