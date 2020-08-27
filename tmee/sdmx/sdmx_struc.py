@@ -1,5 +1,6 @@
 
 # functions extracting basic information about an sdmx structure from a sdmx-json file
+# could be a good candidate to create a class sdmx_struct_json and these functions as methods
 
 
 def get_sdmx_dim(sdmx_json_struc):
