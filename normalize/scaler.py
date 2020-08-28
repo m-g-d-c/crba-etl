@@ -169,7 +169,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         cleansed_data_full = pd.DataFrame(columns = cleansed_data.columns.tolist())
 
         # Inform what columns (which have not previously been excluded) have several values and therefore define a subset
-        print('You hve a selected a few columns, which will not be regarded as dimensions. These are the remaining columns in the dataset, along with the number of values they take in the dataset.')
+        print('You have a selected a few columns, which will not be regarded as dimensions. These are the remaining columns in the dataset, along with the number of values they take in the dataset.')
         tot_num_subsets = 1
         for col in cleansed_data[non_essential_col]:
             print('The column {} has {} unique values.'.format(col, cleansed_data[non_essential_col][col].nunique()))
@@ -188,8 +188,9 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
             cleansed_data_subset = cleansed_data[eval(subset)]
 
             # Log: Inform user what subset the operations are being performed on
-            print('In the loop we are currently dealing with the subset #{}, which has these defining values: {}'.format(j + 1, cleansed_data_subset[non_essential_col].drop_duplicates()))
-            print('\n The shape of the subset is: {}'.format(cleansed_data_subset.shape))
+            print('\n - \n')
+            print('In the loop we are currently dealing with the subset #{}, which has these defining values: \n \n {}'.format(j + 1, cleansed_data_subset[non_essential_col].drop_duplicates()))
+            print('\n The shape of the subset in the cleansed dataset is: {} \n \n '.format(cleansed_data_subset.shape))
 
             # Often, the subset will be empty dataframes, because they only consists of NaN values
             try:
@@ -235,7 +236,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
                 # iv) Append the subset including its scaled value to the final returned dataframe
                     # Right join to have all countries from the final crba master list
                 cleansed_data_subset_rj = cleansed_data_subset.merge(
-                       right = crba_final_country_list,
+                      right = crba_final_country_list,
                       how = 'right',
                       left_on = cleansed_df_iso2_col,
                       right_on = crba_final_country_list_iso_col,
@@ -247,6 +248,10 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
 
             except:
                 print('Dataframe is empty. There are no values to append.')
+
+            # Log: print information that this loop run is terminated
+            print(' \n This is the end of loop #{}. \n - \n '.format(j + 1))
+
 
           # Sanity Check: The resulting dataframe should always have 195 rows. NB: if you put the line of code before the above "Append the values" bit, Python throws and error
         assert pd.to_numeric(cleansed_data_full.shape[0]) % 195 == 0, 'Number of rows should be a multiple of 195, but it is not. Check if all columns which should be part of the group by statement are listed'
