@@ -81,6 +81,11 @@ prototype_API_Transform.ipynb
 wrap_API_calls.ipynb
 wrap_API_calls2.ipynb
 
+# ignore some excel files kept for versioning history
+indicator_dictionary_TM_v01.xlsx
+indicator_dictionary_TM_v1_c.xlsx
+test.xlsx
+
 # Ignore history download folder
 noYreq
 
