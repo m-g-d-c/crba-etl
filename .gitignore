@@ -69,4 +69,18 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# ignore folder tests
+tests
+
+# Ignore some of my noteboooks prototypes
+API_calls.ipynb
+column_mapper.ipynb
+proto_sqlite.ipynb
+prototype_API_Transform.ipynb
+wrap_API_calls.ipynb
+wrap_API_calls2.ipynb
+
+# Ignore history download folder
+noYreq
+
 # End of https://www.toptal.com/developers/gitignore/api/windows,jupyternotebooks,microsoftoffice
