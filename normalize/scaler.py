@@ -74,7 +74,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         elif cat_scoring_type == 'Type 3-2-1-0':
             # Specify the values the raw data can take
             conditions = [
-                (cleansed_data[indicator_raw_value] == 0)
+                (cleansed_data[indicator_raw_value] == 0),
                 (cleansed_data[indicator_raw_value] == 1),
                 (cleansed_data[indicator_raw_value] == 2),
                 (cleansed_data[indicator_raw_value] == 3)
@@ -101,7 +101,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         elif cat_scoring_type == 'Type 4-3-2-1-0':
             # Specify the values the raw data can take
             conditions = [
-                (cleansed_data[indicator_raw_value] == 0)
+                (cleansed_data[indicator_raw_value] == 0),
                 (cleansed_data[indicator_raw_value] == 1),
                 (cleansed_data[indicator_raw_value] == 2),
                 (cleansed_data[indicator_raw_value] == 3),
@@ -116,7 +116,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         elif cat_scoring_type == 'Type 5-4-3-2-1-0':
             # Specify the values the raw data can take
             conditions = [
-                (cleansed_data[indicator_raw_value] == 0)
+                (cleansed_data[indicator_raw_value] == 0),
                 (cleansed_data[indicator_raw_value] == 1),
                 (cleansed_data[indicator_raw_value] == 2),
                 (cleansed_data[indicator_raw_value] == 3),
@@ -131,7 +131,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         elif cat_scoring_type == 'Type 7-6-5-4-3-2-1-0':
             # Specify the values the raw data can take
             conditions = [
-                (cleansed_data[indicator_raw_value] == 0)
+                (cleansed_data[indicator_raw_value] == 0),
                 (cleansed_data[indicator_raw_value] == 1),
                 (cleansed_data[indicator_raw_value] == 2),
                 (cleansed_data[indicator_raw_value] == 3),
@@ -148,7 +148,16 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
             raise('The scoring type you have specified does not exist. Make sure your scoring type is listed in the documentation of this fuction.')
 
         # create a new column and assign values to it using our lists
-        cleansed_data['SCALED'] = np.select(conditions, values)
+        cleansed_data['SCALED'] = np.select(conditions, norm_values)
+
+        # Right join country list
+        cleansed_data_full = cleansed_data.merge(
+              right = crba_final_country_list,
+              how = 'right',
+              left_on = cleansed_df_iso2_col,
+              right_on = crba_final_country_list_iso_col,
+              indicator = 'RJ_CRBA_FULL_LIST'
+          )
 
     else:
         # This is the section dealing with numerical indicators
@@ -245,6 +254,9 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
 
                     # Append the values
                 cleansed_data_full = cleansed_data_full.append(cleansed_data_subset_rj)
+
+                # For debugging, include
+                print('\n The shape of the dataframe should be 195 x X. It is:  {} \n '.format(cleansed_data_subset_rj.shape))
 
             except:
                 print('Dataframe is empty. There are no values to append.')
