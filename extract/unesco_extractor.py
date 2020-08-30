@@ -15,17 +15,21 @@ def extract_unesco_api_data(api_call_url, subs_key = '460ab272abdd43c892bb59c218
     obj: Returns pandas dataframe
 
    """
+
+    # Define URL with Michael Gramlichs subscription key
     if subs_key == '460ab272abdd43c892bb59c218c22c09':
         url = api_call_url
     else:
-        print('If you would like to use another subscription key, please build your query inclusing that subscription key here: https://apiportal.uis.unesco.org/query-builder')
+        print('If you would like to use another subscription key, please build your query including that subscription key here: https://apiportal.uis.unesco.org/query-builder')
 
+    # Extract data
     raw_data = pd.read_csv(filepath_or_buffer = url,
                      sep = ',',)
 
+    # Provide log for users to see what possible dimensions might be in the dataset
     print('The following columns are present in the datasets, and this is the number of unique values they have. ')
-    # tot_num_subsets = 1
     for col in raw_data:
         print('The column {} has {} unique values.'.format(col, raw_data[col].nunique()))
 
+    # Return dataframe
     return(raw_data)
