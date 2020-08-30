@@ -36,7 +36,7 @@ def cleanse_sdg_api_data(raw_data, country_list_full, country_list_full_name_col
     grouped_data = raw_data[raw_data['timePeriodStart'] == raw_data.groupby(col_list_gb)['timePeriodStart'].transform('max')]
 
     # Discard rows of countries that are not in the master country list
-        # The raw data only contains country names. Assign ISO codes to these country names
+        # The raw data only contains country names. Assign ISO codes to these country names. Use country full list to make sure each country name variation is captured
     grouped_data_iso = grouped_data.merge(
         right = country_list_full,
         how = 'left',
@@ -53,7 +53,8 @@ def cleanse_sdg_api_data(raw_data, country_list_full, country_list_full_name_col
         indicator = True,
         validate = 'many_to_one')
 
-    # Note of Michael: "Validation: Number of rows should be 195" --> This is incorrect, the number can also diverge (because the left table may contain one, several or no values for a country-key)
+    # Note of Michael to Michael: "Validation: Number of rows should be 195"
+    # --> This is incorrect, the number can also diverge (because the left table may contain one, several or no values for a country-key)
 
     # return result
     return(grouped_data_iso_filt.sort_values(by = country_df_iso2_col, axis = 0))
