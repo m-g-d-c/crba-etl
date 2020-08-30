@@ -21,14 +21,14 @@ def extract_ilo_api_data(api_call_url):
     obj: Returns pandas dataframe
 
    """
-    raw_data = pd.read_csv(filepath_or_buffer = api_call_url)
-    # print('The extracted raw data contains the following columns: {}'.format(raw_data.columns))
 
+    # Extract data
+    raw_data = pd.read_csv(filepath_or_buffer = api_call_url)
+
+    # Provide log for user to display what dimensions might be in the dataset
     print('The following columns are present in the datasets, and this is the number of unique values they have. ')
-    # tot_num_subsets = 1
     for col in raw_data:
         print('The column {} has {} unique values.'.format(col, raw_data[col].nunique()))
-        # tot_num_subsets *= raw_data[col].nunique()
-    # print('The total number of subgroups in the dataset is therefore: {}'.format(tot_num_subsets))
 
+    # Return data as dataframe
     return(raw_data)
