@@ -11,6 +11,7 @@
 
 # python cache (created by imports executed in notebooks)
 __pycache__
+*/__pycache__/
 
 # exclude all archive folders
 z_archive
