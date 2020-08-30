@@ -5,3 +5,7 @@ difflib
 openpyxl
 pandas_datareader
 black
+json
+urllib
+os
+numpy
