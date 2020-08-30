@@ -1,13 +1,13 @@
 import pandas as pd
 import os
 
-# Define the export path for all RAW data sources
+# Define the export path for all cleansed data sources
 cwd = os.getcwd()
 
 data_cleansed = cwd + "\data\data_cleansed\\"
 
 def save_cleansed_data(dataframe, filename, output_path = data_cleansed):
-    """Save raw data 
+    """Save raw data
 
     Parameters:
     dataframe (obj): Pandas dataframe to be stored
@@ -15,8 +15,12 @@ def save_cleansed_data(dataframe, filename, output_path = data_cleansed):
     output_path (string): Folder where data is stored
 
     Returns:
-    obj: 
+    obj:
 
    """
+
+    # Save data in "cwd/ data/data_cleansed"
     dataframe.to_excel(output_path + filename)
+
+    # Provide log for user
     print('The raw data has been saved as .xlsx file in: ' + output_path)
