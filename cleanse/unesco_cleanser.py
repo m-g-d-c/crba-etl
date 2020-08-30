@@ -30,7 +30,6 @@ def cleanse_unesco_api_data(raw_data, raw_data_iso_2_col, country_df, country_df
         # Retreive the latest available data for each group, where group is 'col_list_gb'
     grouped_data = raw_data[raw_data['TIME_PERIOD'] == raw_data.groupby(col_list_gb)['TIME_PERIOD'].transform('max')]
 
-
     # Discard countries that aren't part of the final CRBA master list
     grouped_data_iso_filt = grouped_data.merge(
         right = country_df,
