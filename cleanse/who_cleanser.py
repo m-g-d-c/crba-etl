@@ -22,7 +22,7 @@ def cleanse_who_api_num_data(raw_data, raw_data_iso_3_col, country_df, country_d
     raw_data = raw_data.drop_duplicates()
 
     # Group by to obtain the latest available value per group, where group is 'col_list_gb'
-        # Create list of all column to group by
+        # Create list of all columns to group by
     col_list = raw_data.columns.to_list() # list of all columns in the dataframe
     non_dim_cols_tuple = tuple(non_dim_cols) # parameters must be passed as list, but the following command requires a tuple
     col_list_gb = [e for e in col_list if e not in non_dim_cols_tuple] # exclude timePeriodStart and value, because these one'saren't used for the groupby statement
@@ -44,8 +44,6 @@ def cleanse_who_api_num_data(raw_data, raw_data_iso_3_col, country_df, country_d
 
     # return result
     return(grouped_data_iso_filt.sort_values(by = country_df_iso3_col, axis = 0))
-
-
 
 def cleanse_who_api_cat_data(raw_data, raw_data_iso_3_col, country_df, country_df_iso3_col, non_dim_cols):
     """TO DO
