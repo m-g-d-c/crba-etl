@@ -161,8 +161,10 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
 
     else:
         # This is the section dealing with numerical indicators
-        # If there are dimensions in the dataset (e.g. GENDER), then the normalization of the indicator score
-        # must be done for all subgroups (ie. subsets) defined by the dimensions and their values. For that, we must extract these subsets in the original dataset
+        # If there are dimensions in the dataset (e.g. GENDER), then the
+        # normalization of the indicator score must be done for all subgroups
+        # (ie. subsets), which are defined by the dimensions and their values.
+        #For that, we must extract these subsets in the original dataset
 
         # Extract the subsets (defined by the dimensions) of the data
             # Exclude columns which are are not a dimension or should not be part in defining a subset (i.e. they aren't part of a unique identifier of a row)
@@ -174,7 +176,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         length = cleansed_data[non_essential_col].drop_duplicates().shape[0]
         width = cleansed_data[non_essential_col].drop_duplicates().shape[1]
 
-        # Create empty final dataframe before entering loop. The different subsets will be appended in this DF to obtain the full dataset incl. the scaled variable in the end
+        # Create empty final dataframe before entering loop. The different subsets will be appended in this DF to obtain the full dataset incl. the normalized variable in the end
         cleansed_data_full = pd.DataFrame(columns = cleansed_data.columns.tolist())
 
         # Inform what columns (which have not previously been excluded) have several values and therefore define a subset
@@ -264,7 +266,6 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
             # Log: print information that this loop run is terminated
             print(' \n This is the end of loop #{}. \n - \n '.format(j + 1))
 
-
           # Sanity Check: The resulting dataframe should always have 195 rows. NB: if you put the line of code before the above "Append the values" bit, Python throws and error
         assert pd.to_numeric(cleansed_data_full.shape[0]) % 195 == 0, 'Number of rows should be a multiple of 195, but it is not. Check if all columns which should be part of the group by statement are listed'
         print('The number of rows of the final dataframe (before the conversion from wide to long format is) is divisible by 195. It is: {}'.format(cleansed_data_full.shape))
@@ -273,7 +274,7 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
         # Prepare the melting of the dataframe, by defining what columns remain untouched by the melt
     kept_columns = [x for x in cleansed_data_full.columns.tolist() if x not in [indicator_raw_value, 'SCALED']]
 
-        # Bring the dataframe from wide to long format and return it
+        # Bring the dataframe from wide to long format
     long_format = pd.melt(cleansed_data_full,
                id_vars = kept_columns,
                value_vars = [indicator_raw_value, 'SCALED'],
