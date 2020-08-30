@@ -12,6 +12,11 @@
 # python cache (created by imports executed in notebooks)
 __pycache__
 
+# exclude all archive folders
+z_archive
+data/*/z_archive
+
+
 # exclude folder created by visual studio 2019
 .vs/
 
