@@ -1,4 +1,3 @@
-
 import requests
 
 # function for api request as proposed by Daniele
@@ -12,5 +11,6 @@ def api_request(address, params=None, headers=None):
         print(f"HTTP error occurred: {http_err}")
     except Exception as error:
         print(f"Other error occurred: {error}")
-    # return response object
+    # return response object (check with James note below)
+    # for error "no connection adapters found", response will not defined!
     return response
