@@ -80,13 +80,20 @@ proto_sqlite.ipynb
 prototype_API_Transform.ipynb
 wrap_API_calls.ipynb
 wrap_API_calls2.ipynb
+proto_extract_transform.ipynb
+excel_tmee.ipynb
 
-# ignore some excel files kept for versioning history
+
+# ignore folder below (all excel files)
+populate_data_dictionary
+
+# ignore some versioning excel files
 indicator_dictionary_TM_v01.xlsx
-indicator_dictionary_TM_v1_c.xlsx
-test.xlsx
 
 # Ignore history download folder
 noYreq
+extractTest
+loopTest
+older
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,jupyternotebooks,microsoftoffice
