@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import requests
 import urllib
+import os
 import bs4 as bs
 import selenium
 from selenium import webdriver
@@ -15,7 +16,11 @@ def extract_ilo_normlex_data(html_url):
     website have a structure, which ir prone to bugs and which can't be opened and get with normal urllib.
 
     For the function to run, you must install selenium, use firefox as browser and download the geckodriver.exe.
-    The driver is part of the repo and in the root directory.
+    The driver is part of the repo and it must be put in the root directory. If you want to put it somewhere else,
+    then you must specifiy it in the code below.
+
+    Note that for each function call, Selenium will open a Firefox browser window to open the webpage from which
+    to scrape. 
 
     Parameters:
     html_url (str): URL of the ILO NORMLEX website, for example 'https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:11300:0::NO:11300:P11300_INSTRUMENT_ID:312226:NO'
@@ -24,6 +29,9 @@ def extract_ilo_normlex_data(html_url):
     obj: Returns pandas dataframe
 
    """
+
+    # Define current work directory
+    cwd = os.getcwd()
 
     # Open the targete html. Must be done with selenium, because it doesnt work with normal URL request
     driver = webdriver.Firefox(executable_path = cwd + '\\geckodriver.exe')
