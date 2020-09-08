@@ -28,6 +28,8 @@ data/*/z_archive
 data_out/
 data/* # this is legacy, because the data folder has been renamed to data_out
 
+# Exclude data_dictionary folder (becaue moved file to data_in)
+data_dictionary
 
 # exclude folder created by visual studio 2019
 .vs/
