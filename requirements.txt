@@ -4,4 +4,5 @@ bs4
 openpyxl
 pandas_datareader
 black
+rope
 

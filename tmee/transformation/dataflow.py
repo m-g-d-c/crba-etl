@@ -1,5 +1,6 @@
 
-from tmee.transformation import define_maps
+from . import define_maps
+
 
 class Dataflow:
     """
