@@ -11,12 +11,22 @@
 
 # python cache (created by imports executed in notebooks)
 __pycache__
-*/__pycache__/
+*/__pycache__/*
+cleanse/__pycache__/unesco_cleanser.cpython-37.pyc
+
+# Debug file used for temporary debugging
+debug_file.py
+
+# Gecko driver log file
+*.log
 
 # exclude all archive folders
 z_archive
 data/*/z_archive
 
+# Exclude cleansed and normalized data
+data/data_cleansed
+data/data_normalized
 
 # exclude folder created by visual studio 2019
 .vs/
