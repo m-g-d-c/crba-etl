@@ -1,9 +1,11 @@
-
 import requests
 
 # function for api request as proposed by Daniele
 # errors are printed and don't stop program execution
 def api_request(address, params=None, headers=None):
+    """
+    
+    """
     try:
         response = requests.get(address, params=params, headers=headers)
         # If the response was successful, no Exception will be raised

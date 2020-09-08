@@ -1,8 +1,12 @@
-
 # function from stackoverflow by MaxU
-def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
-                       truncate_sheet=False, 
-                       **to_excel_kwargs):
+def append_df_to_excel(
+    filename,
+    df,
+    sheet_name="Sheet1",
+    startrow=None,
+    truncate_sheet=False,
+    **to_excel_kwargs
+):
     """
     Append a DataFrame [df] to existing Excel file [filename]
     into [sheet_name] Sheet.
@@ -29,17 +33,16 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
     import pandas as pd
 
     # ignore [engine] parameter if it was passed
-    if 'engine' in to_excel_kwargs:
-        to_excel_kwargs.pop('engine')
+    if "engine" in to_excel_kwargs:
+        to_excel_kwargs.pop("engine")
 
-    writer = pd.ExcelWriter(filename, engine='openpyxl')
+    writer = pd.ExcelWriter(filename, engine="openpyxl")
 
-    # Python 2.x: define [FileNotFoundError] exception if it doesn't exist 
+    # Python 2.x: define [FileNotFoundError] exception if it doesn't exist
     try:
         FileNotFoundError
     except NameError:
         FileNotFoundError = IOError
-
 
     try:
         # try to open an existing workbook
@@ -60,7 +63,7 @@ def append_df_to_excel(filename, df, sheet_name='Sheet1', startrow=None,
             writer.book.create_sheet(sheet_name, idx)
 
         # copy existing sheets
-        writer.sheets = {ws.title:ws for ws in writer.book.worksheets}
+        writer.sheets = {ws.title: ws for ws in writer.book.worksheets}
     except FileNotFoundError:
         # file does not exist yet, we will create it
         pass
