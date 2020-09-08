@@ -127,6 +127,22 @@ def normalizer(cleansed_data, indicator_raw_value, indicator_code, indicator_nam
             # Specify the normalized values
             norm_values = ['No data', '0.00', '2.50', '5.00', '7.50', '10.00']
 
+        # Type 6-5-4-3-2-1-0
+        elif cat_scoring_type == 'Type 6-5-4-3-2-1-0':
+            # Specify the values the raw data can take
+            conditions = [
+                (cleansed_data[indicator_raw_value] == 0),
+                (cleansed_data[indicator_raw_value] == 1),
+                (cleansed_data[indicator_raw_value] == 2),
+                (cleansed_data[indicator_raw_value] == 3),
+                (cleansed_data[indicator_raw_value] == 4),
+                (cleansed_data[indicator_raw_value] == 5),
+                (cleansed_data[indicator_raw_value] == 6)
+                ]
+
+            # Specify the normalized values
+            norm_values = ['No data', '0.00', '2.00', '4.00', '6.00', '8.00', '10.00']
+
         # Type 7-6-5-4-3-2-1-0
         elif cat_scoring_type == 'Type 7-6-5-4-3-2-1-0':
             # Specify the values the raw data can take
