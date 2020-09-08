@@ -26,7 +26,7 @@ data/*/z_archive
 
 # Exclude all data output by the ETL script
 data_out/
-data/ # this is legacy, because the data folder has been renamed to data_out
+data/* # this is legacy, because the data folder has been renamed to data_out
 
 
 # exclude folder created by visual studio 2019
