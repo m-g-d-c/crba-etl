@@ -4,7 +4,7 @@ import os
 # Define the export path for all normalized data sources
 cwd = os.getcwd()
 
-data_normalized = cwd + "\data\data_normalized\\"
+data_normalized = cwd + "\data_out\data_normalized\\"
 
 def save_normalized_data(dataframe, filename, output_path = data_normalized):
     """Save raw data
