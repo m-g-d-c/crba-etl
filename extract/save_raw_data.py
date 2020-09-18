@@ -4,7 +4,7 @@ import os
 # Define the export path for all RAW data sources
 cwd = os.getcwd()
 
-data_sources_raw = cwd + "\data\data_raw\\"
+data_sources_raw = cwd + "\data_out\data_raw\\"
 
 def save_raw_data(dataframe, filename, output_path = data_sources_raw):
     """Save raw data
