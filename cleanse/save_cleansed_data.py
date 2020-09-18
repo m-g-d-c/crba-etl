@@ -4,7 +4,7 @@ import os
 # Define the export path for all cleansed data sources
 cwd = os.getcwd()
 
-data_cleansed = cwd + "\data\data_cleansed\\"
+data_cleansed = cwd + "\data_out\data_cleansed\\"
 
 def save_cleansed_data(dataframe, filename, output_path = data_cleansed):
     """Save raw data
