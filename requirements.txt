@@ -1,11 +1,9 @@
 requests
 pandas
 bs4
-difflib
 openpyxl
 pandas_datareader
 black
-json
-urllib
-os
 numpy
+selenium
+html5lib
