@@ -9,6 +9,7 @@ class Extractor(ABC):
     """
 
     type = None
+    headers = {}
 
     @classmethod
     def content_type(cls):
@@ -26,6 +27,19 @@ class Extractor(ABC):
             DataFrame: DataFrame contianing the data
         """
         raise NotImplementedError
+
+    @classmethod
+    def api_request(cls, address, params=None, headers=None):
+        try:
+            response = requests.get(address, params=params, headers=headers)
+            # If the response was successful, no Exception will be raised
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as http_err:
+            print(f"HTTP error occurred: {http_err}")
+        except Exception as error:
+            print(f"Other error occurred: {error}")
+        # return response object
+        return response
 
     @classmethod
     def extract(cls, url):
@@ -54,7 +68,9 @@ class CSVExtractor(Extractor):
     @classmethod
     def data(cls, url):
 
-        raw_data = pd.read_csv(url, sep=",",)
+        csv_data = cls.api_request(url, headers=cls.headers).text
+
+        raw_data = pd.read_csv(csv_data, sep=",")
 
         return raw_data
 
@@ -70,3 +86,7 @@ class JSONExtractor(Extractor):
 
         return raw_data
 
+
+class SDMXExtractor(CSVExtractor):
+
+    headers = {'Accept':'application/vnd.sdmx.data+csv;version=1.0.0', 'Accept-Encoding':'gzip'}
