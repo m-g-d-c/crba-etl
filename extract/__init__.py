@@ -1,3 +1,4 @@
+from io import StringIO
 from abc import ABC, abstractmethod, abstractproperty
 
 import pandas as pd
@@ -70,7 +71,7 @@ class CSVExtractor(Extractor):
 
         csv_data = cls.api_request(url, headers=cls.headers).text
 
-        raw_data = pd.read_csv(csv_data, sep=",")
+        raw_data = pd.read_csv(StringIO(csv_data), sep=",")
 
         return raw_data
 
@@ -89,4 +90,9 @@ class JSONExtractor(Extractor):
 
 class SDMXExtractor(CSVExtractor):
 
-    headers = {'Accept':'application/vnd.sdmx.data+csv;version=1.0.0', 'Accept-Encoding':'gzip'}
+    type = "sdmx-csv"
+
+    headers = {
+        "Accept": "application/vnd.sdmx.data+csv;version=1.0.0",
+        "Accept-Encoding": "gzip",
+    }

@@ -7,13 +7,13 @@ def normalizer(
     indicator_raw_value,
     indicator_code,
     indicator_name,
-    norm_values,
-    contains_zeros,
     cleansed_df_iso2_col,
     crba_final_country_list,
     crba_final_country_list_iso_col,
     cat_var=False,
     cat_scoring_type=None,
+    norm_values=[],
+    contains_zeros=False,
     inverted=False,
     non_dim_cols=None,
     whisker_factor=1.5,
@@ -53,7 +53,7 @@ def normalizer(
         # Build conditions array based off the passed norm_values
         conditions = [
             (cleansed_data[indicator_raw_value] == index)
-            for index,value in enumerate(norm_values, start=0 if contains_zeros else 1)
+            for index, value in enumerate(norm_values, start=0 if contains_zeros else 1)
         ]
 
         # create a new column and assign values to it using our lists
@@ -77,13 +77,10 @@ def normalizer(
 
         # Extract the subsets (defined by the dimensions) of the data
         # Exclude columns which are are not a dimension or should not be part in defining a subset (i.e. they aren't part of a unique identifier of a row)
-        col_list = (
-            cleansed_data.columns.to_list()
-        )  # list of all columns in the dataframe
-        non_dim_cols_tuple = tuple(
-            non_dim_cols
-        )  # parameters must be passed as list, but the following command requires a tuple
-        non_essential_col = [e for e in col_list if e not in non_dim_cols_tuple]
+        col_list = cleansed_data.columns.to_list()
+
+        # parameters must be passed as list, but the following command requires a tuple
+        non_essential_col = [e for e in col_list if e not in non_dim_cols]
 
         # Define parameters to run a loop going through all subsets
         length = cleansed_data[non_essential_col].drop_duplicates().shape[0]
@@ -94,7 +91,8 @@ def normalizer(
 
         # Inform what columns (which have not previously been excluded) have several values and therefore define a subset
         print(
-            "You have a selected a few columns, which will not be regarded as dimensions. These are the remaining columns in the dataset, along with the number of values they take in the dataset."
+            "You have a selected a few columns, which will not be regarded as dimensions."
+            "These are the remaining columns in the dataset, along with the number of values they take in the dataset."
         )
         tot_num_subsets = 1
         for col in cleansed_data[non_essential_col]:
@@ -110,7 +108,11 @@ def normalizer(
             )
         )
 
-        # Loop: i) defining values of subsets to create ii) subsets , iii) calculate the scaled value for all of them and iv) append the subsets in one dataframe
+        # Loop:
+        # i) defining values of subsets to create
+        # ii) subsets ,
+        # iii) calculate the scaled value for all of them and
+        # iv) append the subsets in one dataframe
         for j in range(0, length):
             # i) Create the defining values of the subset
             subset = ""

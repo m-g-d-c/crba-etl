@@ -7,3 +7,6 @@ black
 numpy
 selenium
 html5lib
+rope
+xlrd
+
