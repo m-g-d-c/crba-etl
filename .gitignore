@@ -127,3 +127,6 @@ data/data_raw/S_8, S_9/WORLD_Dataset_Child_Labor_10.28.19.zip
 *.pyc
 cleanse/__pycache__/save_cleansed_data.cpython-37.pyc
 cleanse/__pycache__/__init__.cpython-37.pyc
+cleanse/__pycache__/__init__.cpython-37.pyc
+cleanse/__pycache__/save_cleansed_data.cpython-37.pyc
+cleanse/__pycache__/unesco_cleanser.cpython-37.pyc
