@@ -1,4 +1,5 @@
 
+
 # Created by https://www.toptal.com/developers/gitignore/api/windows,jupyternotebooks,microsoftoffice
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,jupyternotebooks,microsoftoffice
 
@@ -12,9 +13,6 @@
 # python cache (created by imports executed in notebooks)
 __pycache__
 */__pycache__/*
-*/__pycache__/*.pyc
-*/_pycache_/*
-cleanse/__pycache__/unesco_cleanser.cpython-37.pyc
 *.pyc
 
 # Debug file used for temporary debugging
@@ -29,7 +27,9 @@ data/*/z_archive
 
 # Exclude all data output by the ETL script
 data_out/
-data/* # this is legacy, because the data folder has been renamed to data_out
+# this is legacy, because the data folder has been renamed to data_out
+data/*
+**.csv
 
 # Exclude data_dictionary folder (becaue moved file to data_in)
 data_dictionary
@@ -123,10 +123,36 @@ data/data_raw/S_8, S_9/Child Labor Public Use Data Dictionary 10.28.19.pdf
 data/data_raw/S_8, S_9/WORLD_child_labor.dta
 data/data_raw/S_8, S_9/WORLD_child_labor.xls
 data/data_raw/S_8, S_9/WORLD_Dataset_Child_Labor_10.28.19.zip
-*.pyc
-*.pyc
-cleanse/__pycache__/save_cleansed_data.cpython-37.pyc
-cleanse/__pycache__/__init__.cpython-37.pyc
-cleanse/__pycache__/__init__.cpython-37.pyc
-cleanse/__pycache__/save_cleansed_data.cpython-37.pyc
-cleanse/__pycache__/unesco_cleanser.cpython-37.pyc
+# ignore folder tests
+tests
+
+# Ignore some of my noteboooks prototypes
+API_calls.ipynb
+column_mapper.ipynb
+proto_sqlite.ipynb
+prototype_API_Transform.ipynb
+wrap_API_calls.ipynb
+wrap_API_calls2.ipynb
+proto_extract_transform.ipynb
+excel_tmee.ipynb
+
+
+# ignore folder below (all excel files)
+populate_data_dictionary
+
+# ignore some versioning excel files
+indicator_dictionary_TM_v01.xlsx
+
+# Ignore history download folder
+noYreq
+extractTest
+loopTest
+older
+
+# End of https://www.toptal.com/developers/gitignore/api/windows,jupyternotebooks,microsoftoffice
+
+!tmee/data_raw/
+tmee/data_raw/*
+
+!tmee/data_transformed/
+tmee/data_transformed/*

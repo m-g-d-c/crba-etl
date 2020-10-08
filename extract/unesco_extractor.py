@@ -1,6 +1,7 @@
 import pandas as pd
 
-def extract_unesco_api_data(api_call_url, subs_key = '460ab272abdd43c892bb59c218c22c09'):
+
+def extract_unesco_api_data(api_call_url, subs_key="460ab272abdd43c892bb59c218c22c09"):
     """Extract raw data from the UNESCO API
 
     The API can be called with a API key, which you must generate by creating an account.
@@ -17,19 +18,24 @@ def extract_unesco_api_data(api_call_url, subs_key = '460ab272abdd43c892bb59c218
    """
 
     # Define URL with Michael Gramlichs subscription key
-    if subs_key == '460ab272abdd43c892bb59c218c22c09':
+    if subs_key == "460ab272abdd43c892bb59c218c22c09":
         url = api_call_url
     else:
-        print('If you would like to use another subscription key, please build your query including that subscription key here: https://apiportal.uis.unesco.org/query-builder')
+        print(
+            "If you would like to use another subscription key, please build your query including that subscription key here: https://apiportal.uis.unesco.org/query-builder"
+        )
 
     # Extract data
-    raw_data = pd.read_csv(filepath_or_buffer = url,
-                     sep = ',',)
+    raw_data = pd.read_csv(filepath_or_buffer=url, sep=",",)
 
     # Provide log for users to see what possible dimensions might be in the dataset
-    print('The following columns are present in the datasets, and this is the number of unique values they have. ')
+    print(
+        "The following columns are present in the datasets, and this is the number of unique values they have. "
+    )
     for col in raw_data:
-        print('The column {} has {} unique values.'.format(col, raw_data[col].nunique()))
+        print(
+            "The column {} has {} unique values.".format(col, raw_data[col].nunique())
+        )
 
     # Return dataframe
-    return(raw_data)
+    return raw_data

@@ -7,6 +7,7 @@ import bs4 as bs
 import selenium
 from selenium import webdriver
 
+
 def extract_ilo_normlex_data(html_url):
     """Extract raw data from ILO NOMRLEX
 
@@ -34,7 +35,7 @@ def extract_ilo_normlex_data(html_url):
     cwd = os.getcwd()
 
     # Open the targete html. Must be done with selenium, because it doesnt work with normal URL request
-    driver = webdriver.Firefox(executable_path = cwd + '\\geckodriver.exe')
+    driver = webdriver.Firefox(executable_path=cwd + "\\geckodriver.exe")
 
     # Get response
     response = driver.get(html_url)
@@ -46,12 +47,14 @@ def extract_ilo_normlex_data(html_url):
     soup = bs.BeautifulSoup(html)
 
     # Extract the target table as attribute
-    target_table = str(soup.find_all('table', {'cellspacing' : '0',
-                                               'class' : 'horizontalLine'}))
+    target_table = str(
+        soup.find_all("table", {"cellspacing": "0", "class": "horizontalLine"})
+    )
 
     # Create dataframe with the data
-    raw_data = pd.read_html(io = target_table,
-                       header = 0)[0] # return is a list of DFs, specify [0] to get actual DF
+    raw_data = pd.read_html(io=target_table, header=0)[
+        0
+    ]  # return is a list of DFs, specify [0] to get actual DF
 
     # Return result
-    return(raw_data)
+    return raw_data

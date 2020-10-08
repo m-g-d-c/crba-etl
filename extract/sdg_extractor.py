@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import requests
 
+
 def extract_sdg_api_data(series_code):
     """Extract raw data for a series from the SDG API (UN STATS)
 
@@ -24,15 +25,23 @@ def extract_sdg_api_data(series_code):
    """
 
     # Define URL to extract data in json format
-    url = 'https://unstats.un.org/SDGAPI/v1/sdg/Series/Data?seriesCode={}&pageSize=999999999'.format(series_code)
+    url = "https://unstats.un.org/SDGAPI/v1/sdg/Series/Data?seriesCode={}&pageSize=999999999".format(
+        series_code
+    )
 
     # Extract data and convert to pandas dataframe
-    raw_data = pd.json_normalize(requests.get(url).json()['data'])
+    raw_data = pd.json_normalize(requests.get(url).json()["data"])
 
     # Log functionality for user
-    print('The following columns are present in the datasets, and this is the number of unique values they have. ')
+    print(
+        "The following columns are present in the datasets, and this is the number of unique values they have. "
+    )
     for col in raw_data:
-        print('The column {} has {} unique values.'.format(col, raw_data[col].astype(str).nunique()))
+        print(
+            "The column {} has {} unique values.".format(
+                col, raw_data[col].astype(str).nunique()
+            )
+        )
 
     # Return pandas dataframe
-    return(raw_data)
+    return raw_data
