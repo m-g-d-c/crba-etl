@@ -12,7 +12,10 @@
 # python cache (created by imports executed in notebooks)
 __pycache__
 */__pycache__/*
+*/__pycache__/*.pyc
+*/_pycache_/*
 cleanse/__pycache__/unesco_cleanser.cpython-37.pyc
+*.pyc
 
 # Debug file used for temporary debugging
 debug_file.py
@@ -120,3 +123,7 @@ data/data_raw/S_8, S_9/Child Labor Public Use Data Dictionary 10.28.19.pdf
 data/data_raw/S_8, S_9/WORLD_child_labor.dta
 data/data_raw/S_8, S_9/WORLD_child_labor.xls
 data/data_raw/S_8, S_9/WORLD_Dataset_Child_Labor_10.28.19.zip
+*.pyc
+*.pyc
+cleanse/__pycache__/save_cleansed_data.cpython-37.pyc
+cleanse/__pycache__/__init__.cpython-37.pyc
