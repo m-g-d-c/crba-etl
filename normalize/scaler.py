@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import datetime
 
 
 def normalizer(
@@ -7,6 +8,9 @@ def normalizer(
     indicator_raw_value,
     indicator_code,
     indicator_name,
+    indicator_index,
+    indicator_issue,
+    indicator_category,
     cleansed_df_iso2_col,
     crba_final_country_list,
     crba_final_country_list_iso_col,
@@ -18,13 +22,17 @@ def normalizer(
     non_dim_cols=None,
     whisker_factor=1.5,
 ):
-    """ Transform cleansed datasets into scaled (normalized) data in long format
+    """Transform cleansed datasets into scaled (normalized) data in long format
 
     This function can be applied to any cleansed data. It requires as principal
     object the dataframe containing the cleansed data of an indicator-source,
     calculates the index score values (i.e. normalized values) for an indicator,
-     and returns the input dataframe with three additional columns "VALUE_TYPE",
-     "value", "INDICATOR_CODE" and "INDICATOR_NAME", which hold the normalized,
+    and returns a dataframe. Indicators can be categorical or numerical,
+    which must be specified in the function call. For some indicators, the index
+    score must be inverted, which must be specified in the function call.
+
+    DELET THE FOLLOWING: input dataframe with three additional columns "VALUE_TYPE",
+    "value", "INDICATOR_CODE" and "INDICATOR_NAME", which hold the normalized,
     index-score for the indicator. Indicators can categorical or numerical,
     which must be specified in the function call. For some indicators, the index
      score must be inverted, which must be specified in the function call.
@@ -280,6 +288,57 @@ def normalizer(
             )
         )
 
+    # Add additional, necessary columns
+    # OBS_STATUS
+    cleansed_data_full["OBS_STATUS"] = np.where(
+        cleansed_data_full[indicator_raw_value].isnull(), np.nan, "O"
+    )
+
+    # Create column indicator name
+    cleansed_data_full["INDICATOR_NAME"] = indicator_name
+
+    # Create column indicator name
+    cleansed_data_full["INDICATOR_INDEX"] = indicator_index
+
+    # Create column indicator name
+    cleansed_data_full["INDICATOR_ISSUE"] = indicator_issue
+
+    # Create column indicator name
+    cleansed_data_full["INDICATOR_CATEGORY"] = indicator_category
+
+    # Create column YEAR_CRBA_RELEASE with current year
+    cleansed_data_full["CRBA_RELEASE_YEAR"] = datetime.datetime.now().year
+
+    # Create column indicator code
+    cleansed_data_full["INDICATOR_CODE"] = indicator_code
+
+    # Rename columns
+    cleansed_data_full.rename(
+        columns={indicator_raw_value: "OBS_RAW_VALUE", "SCALED": "OBS_INDICATOR_SCORE"},
+        inplace=True,
+    )
+
+    return cleansed_data_full
+
+    """
+
+        cleansed_data_full = cleansed_data_full.assign(
+        OBS_STATUS=np.where(
+            cleansed_data_full[indicator_raw_value].isnull(), np.nan, "O"
+        )
+    )
+    # Create column OBS_STATUS indicating if the value for a given counry is NaN
+    # print(np.where(cleansed_data_full[indicator_raw_value].isnull(), np.nan, "O"))
+    
+    cleansed_data_full = cleansed_data_full.assign(
+        OBS_STATUS=np.where(
+            cleansed_data_full[indicator_raw_value].isnull(), np.nan, "O"
+        )
+    )
+
+
+
+    ## # #  # # #
     # Bring the final dataframe with scaled (normalized) values from wide to long format
     # Prepare the melting of the dataframe, by defining what columns remain untouched by the melt
     kept_columns = [
@@ -294,12 +353,16 @@ def normalizer(
         id_vars=kept_columns,
         value_vars=[indicator_raw_value, "SCALED"],
         var_name="VALUE_TYPE",
+        value_name="OBS_"
     )
-
+    
     # Assign indicator code and name
     long_format["INDICATOR_CODE"] = indicator_code
     long_format["INDICATOR_NAME"] = indicator_name
+     # # # # # 
 
     # return final dataframe
-    return long_format
+    return cleansed_data_full
 
+
+    """
