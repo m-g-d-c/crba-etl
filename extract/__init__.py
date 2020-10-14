@@ -6,8 +6,7 @@ import requests
 
 
 class Extractor(ABC):
-    """Abstract base class for extractor classes
-    """
+    """Abstract base class for extractor classes"""
 
     type = None
     headers = {}
@@ -19,7 +18,7 @@ class Extractor(ABC):
     @classmethod
     @abstractmethod
     def data(cls, url):
-        """Performs the actual extraction of the data from the provided URL 
+        """Performs the actual extraction of the data from the provided URL
 
         Args:
             url (string): URL to fetch the data from
@@ -96,3 +95,12 @@ class SDMXExtractor(CSVExtractor):
         "Accept": "application/vnd.sdmx.data+csv;version=1.0.0",
         "Accept-Encoding": "gzip",
     }
+
+
+"""
+class HTMLExtractor(Extractor):
+
+    type = "html"
+
+    @classmethod
+"""
