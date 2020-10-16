@@ -25,6 +25,11 @@ debug_file.py
 z_archive
 data/*/z_archive
 
+# exclude tmee data
+tmee/data_raw/*
+tmee/data_transformed/*
+
+
 # Exclude all data output by the ETL script
 data_out/
 # this is legacy, because the data folder has been renamed to data_out
