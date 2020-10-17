@@ -94,8 +94,6 @@ class Cleanser:
         if len(country_col_right_join) == 1:
             country_col_right_join = country_col_right_join[0]
 
-        # print(median(grouped_data["COUNTRY_ISO_3"].apply(lambda x: len(x))))
-
         # prepare 4: Determine if the country col in the raw dataframe is ISO2, ISO3 or the actual country name
         # TO DO What if country_col_right_join is a list of > 1 element?
         med_country_col_len = median(
@@ -160,6 +158,54 @@ class Cleanser:
 
         # Return cleansed dataframe
         return grouped_data_iso_filt
+
+    @classmethod
+    def map_values(cls, cleansed_data, value_mapping_dict):
+        """Map column values (assign consistent values)
+
+        TO
+
+        Parameters:
+        TO DO
+
+        Return:
+        TO DO
+
+        """
+
+        # Loop through all possible columns as defined for the final SDMX structure
+        for key in value_mapping_dict:
+            try:
+                # Define emtpy lists to be mapped to each other
+                original_values = []
+                mapped_values = []
+
+                # Loop obtain all possible original/ mapped value variations mappings
+                for sub_key in value_mapping_dict[key]:
+                    # Obtain boolean arrays for each possible original value
+                    for list_element in range(len(value_mapping_dict[key][sub_key])):
+                        original_values += [
+                            cleansed_data[key]
+                            == value_mapping_dict[key][sub_key][list_element]
+                        ]
+
+                    # Define the target value if original_values evaluates to true
+                    mapped_values += len(value_mapping_dict[key][sub_key]) * [sub_key]
+
+                # Convert (map) the values
+                cleansed_data[key] = np.select(original_values, mapped_values)
+
+                # log info for user
+                print("\n Successfully mapped values of column: {}".format(key))
+
+            # If column is not presnt (or if there are other issues)
+            except:
+                print(
+                    "Values of column: {} couldn't be mapped. If column {} is present, there is an error with the code. ".format(
+                        key, key
+                    )
+                )
+        return cleansed_data
 
 
 """Dev area: 
