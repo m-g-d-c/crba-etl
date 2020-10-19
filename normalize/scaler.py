@@ -5,6 +5,144 @@ import datetime
 
 def normalizer(
     cleansed_data,
+    variable_type="Continuous variable",
+    is_inverted="not inverted",
+    whisker_factor=1.5,
+    raw_data_col="RAW_OBS_VALUE",
+    **dimensions
+):
+    """Normalize the RAW_OBS_VALUES into indicator scores
+
+    TO DO
+
+    Parameters:
+    TO DO
+    **dimensions (mapping type): Define the present dimension variables as keys
+    along with the dimension value that is supposed to be taken for the normalization.
+
+    """
+
+    # Define the dimension subgroup for which normalization is done:
+    # normalization_subset = cleansed_data
+
+    # Empty string which will be filled with subset conditions
+    subset = ""
+
+    # Run loop to get dimensions vaues specified in **dimensions
+    for key in dimensions:
+        subset += "(cleansed_data['{}'] == '{}')&".format(key, dimensions[key])
+
+    # Get rid of the "&-sign" at the end
+    subset = subset.rstrip("& ")
+
+    # Subset the actual dataframe
+    cleansed_data_subset = cleansed_data[eval(subset)]
+
+    if variable_type != "Continuous variable":
+        print("\n Categorical variable, still have to develop this section")
+
+    elif variable_type == "Continuous variable":
+        # Determine basic descriptive statistics of the distribution that are required for the normalization
+        min_val = np.nanmin(cleansed_data_subset[raw_data_col].astype("float"))
+        max_val = np.nanmax(cleansed_data_subset[raw_data_col].astype("float"))
+        q1 = cleansed_data_subset[raw_data_col].astype("float").quantile(q=0.25)
+        q2 = cleansed_data_subset[raw_data_col].astype("float").quantile(q=0.50)
+        q3 = cleansed_data_subset[raw_data_col].astype("float").quantile(q=0.75)
+        iqr = q3 - q1
+
+        # Define what max value to use for the normalization
+        if max_val > q3 + whisker_factor * iqr:
+            max_to_use = q3 + whisker_factor * iqr
+            print(
+                "The distribution of the raw data values this subgroup contains outliers or is too skewed on the upper end. The maximum value to be used for the normalisation is: 3rd quartile or distribution + {} * IQR. It is: {} \n See histogram printed below for info. \n".format(
+                    whisker_factor, max_to_use
+                )
+            )
+        else:
+            max_to_use = max_val
+            print(
+                "The distribution of the raw data for this subgroup does not contain outliers on the upper end. It is also not too skewed on the upper end. The maximum value used for the normalisation is the maximum value in the dataset, which is {}. This value corresponds to country: {} \n".format(
+                    max_to_use,
+                    cleansed_data_subset[
+                        cleansed_data_subset[raw_data_col].astype("float") == max_val
+                    ],
+                )
+            )
+
+        # Define what min value to use for the normalization
+        if min_val < q1 - whisker_factor * iqr:
+            min_to_use = q1 - whisker_factor * iqr
+            print(
+                "The distribution of the raw data values for this subgroup contains outliers or is too skewed on the lower end. The minimum value to be used for the normalisation is 1st quartile or distribution - {} * IQR. It is: {} \n See histogram printed below for info. \n".format(
+                    whisker_factor, min_to_use
+                )
+            )
+        else:
+            min_to_use = min_val
+            print(
+                "The distribution of the raw data for this subgroup does not contain outliers or is too skewed on the lower end. The minimum value used for the normalisation is the minimum value in the dataset, which is {}. This value corresponds to country: {} \n".format(
+                    min_to_use,
+                    cleansed_data_subset[
+                        cleansed_data_subset[raw_data_col].astype("float") == min_val
+                    ],
+                )
+            )
+
+        """
+        # If there are outliers or a skewed distribution, print the distribution for the user.
+        if (min_val < q1 - whisker_factor * iqr) or (
+            max_val > q3 + whisker_factor * iqr
+        ):
+            print(
+                "\n This is the distribution of the raw data of the indicator."
+            )
+            print(
+                pd.to_numeric(s55_cleansed["RAW_OBS_VALUE"]).hist(
+                    bins=30
+                )
+            )"""
+
+        # Define the value range that is used for the scaling (normalization)
+        tot_range = max_val - min_val
+
+        # Compute the normalized value of the raw data in the column "SCALED"
+        # Distinguish between indicators, whose value must be inverted
+        if is_inverted == "inverted":
+            cleansed_data_subset["SCALED_OBS_VALUE"] = round(
+                10
+                - 10
+                * (cleansed_data_subset[raw_data_col].astype("float") - min_val)
+                / tot_range,
+                2,
+            )
+        else:
+            cleansed_data_subset["SCALED_OBS_VALUE"] = round(
+                10
+                * (cleansed_data_subset[raw_data_col].astype("float") - min_val)
+                / tot_range,
+                2,
+            )
+
+    # join normalized data to original dataframe
+    cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
+
+    # cleansed_data = pd.concat([cleansed_data, cleansed_data_subset], axis=1, copy = False)
+
+    # insert column to indicate OBS status
+    result = cleansed_data.assign(
+        OBS_STATUS=np.where(cleansed_data["SCALED_OBS_VALUE"].isnull(), np.nan, "O")
+    )
+
+    # Return result
+    return result
+
+
+""" OLD SECTION, replace all <ORIGINALLY THREE QUOTATION MARKS HERE> 
+
+<ORIGINALLY THREE QUOTATION MARKS HERE>
+
+def normalizer(
+    cleansed_data,
     indicator_raw_value,
     indicator_code,
     indicator_name,
@@ -22,7 +160,7 @@ def normalizer(
     non_dim_cols=None,
     whisker_factor=1.5,
 ):
-    """Transform cleansed datasets into scaled (normalized) data in long format
+    <ORIGINALLY THREE QUOTATION MARKS HERE> Transform cleansed datasets into scaled (normalized) data in long format
 
     This function can be applied to any cleansed data. It requires as principal
     object the dataframe containing the cleansed data of an indicator-source,
@@ -53,7 +191,7 @@ def normalizer(
 
     Returns:
     obj: Returns pandas dataframe with normalized indicator scores in long format
-    """
+    <ORIGINALLY THREE QUOTATION MARKS HERE>
 
     # Check if an indicator is numeric of categorical
     if cat_var == True:
@@ -320,7 +458,7 @@ def normalizer(
 
     return cleansed_data_full
 
-    """
+    <ORIGINALLY THREE QUOTATION MARKS HERE>
 
         cleansed_data_full = cleansed_data_full.assign(
         OBS_STATUS=np.where(

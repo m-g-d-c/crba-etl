@@ -148,8 +148,8 @@ dim_quantile_mapper = {key: "DIM_QUANTILE" for key in dim_quantile_tuple}
 # SDG Goal --> Indicators S-183, S-184 and S-185 have the SDG indicator as dimension,
 # This is because in the SDG api the indicators is mapped to three SDG goals
 # The actual values in these datasets are simply duplicates, so any of them can be taken
-dim_sdg_goal_tuple = ("goal",)
-dim_sdg_goal_mapper = {key: "DIM_SDG_GOAL" for key in dim_sdg_goal_tuple}
+dim_sdg_indicator_tuple = ("indicator",)
+dim_sdg_indicator_mapper = {key: "DIM_SDG_INDICATOR" for key in dim_sdg_indicator_tuple}
 
 # Type of occupation
 dim_ocu_type_tuple = ("dimensions.Type of occupation",)
@@ -233,7 +233,7 @@ mapper_tuple_list = [
     dim_management_level_mapper,
     dim_area_type_mapper,
     dim_quantile_mapper,
-    dim_sdg_goal_mapper,
+    dim_sdg_indicator_mapper,
     dim_ocu_type_mapper,
     dim_reporting_type_mapper,
     dim_sector_mapper,
@@ -258,7 +258,6 @@ for mapper_tuple in mapper_tuple_list:
 with open("mapping_dict.json", "w") as fp:
     json.dump(mapping_dict, fp)
 
-
 # Define list of columns in the final dataframe
 # Country columns
 sdmx_df_columns_country = ["COUNTRY_NAME", "COUNTRY_ISO_2", "COUNTRY_ISO_3"]
@@ -278,7 +277,7 @@ sdmx_df_columns_dims = [
     "DIM_MANAGEMENT_LEVEL",
     "DIM_AREA_TYPE",
     "DIM_QUANTILE",
-    "DIM_SDG_GOAL",
+    "DIM_SDG_INDICATOR",
     "DIM_OCU_TYPE",
     "DIM_REP_TYPE",
     "DIM_SECTOR",
