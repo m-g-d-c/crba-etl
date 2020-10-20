@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime
 import numpy as np
+import re
 from statistics import median
 
 
@@ -16,11 +17,13 @@ class Cleanser:
         time_cols,
         country_list_full,
         crba_country_list,
+        variable_type,
     ):
         """Cleanse raw data
 
         This function cleanses raw data of any source. Specifically, it does the following things:
 
+        0. For WHO sources: Clean the
         1. Rename columns: It uses the mapping dictionary passed as an argument to rename columns to adhere to the final SDMX structure and column names
         2. Discard columns: It discards superfluous columns, that aren't relevant for the final CRBA dataframe
         3. Retrieve latest datapoint: It retrieves the latest observation value for each country.
@@ -38,6 +41,20 @@ class Cleanser:
         obj: Returns pandas dataframe, which only contains the countries meant to be in CRBA and the latest observed value for the indiator.
 
         """
+        # 0. WHO sources required special cleansing to extract actual raw data
+        if "Display Value" in raw_data.columns:
+            if variable_type == "Continuous variable":
+                print("We are in the if statement")  # delete line afterwards
+                raw_data["Display Value"] = raw_data["Display Value"].astype(str)
+                raw_data["Display Value"] = pd.to_numeric(
+                    raw_data["Display Value"].apply(
+                        lambda x: re.sub("No data", "", re.sub(" \[.*\]", "", x))
+                    ),
+                    errors="coerce",
+                )
+            elif variable_type != "Continuous variable":
+                print("We are in the non continous case")
+
         # 1. Rename columns
         raw_data = raw_data.rename(columns=mapping_dictionary)
         # Problem: in some raw data a the column "REF_AREA" contains the ISO 2 code, in others it contains ISO 3 code
@@ -75,7 +92,12 @@ class Cleanser:
 
         # DOUBLE_REF_AREA_SOL: make sure that the column "REF_AREA" in the raw data is mapped to the right ISO code
         try:
-            if median(grouped_data["COUNTRY_ISO_3"].apply(lambda x: len(x))) < 2.5:
+            if (
+                grouped_data["COUNTRY_ISO_3"]
+                .apply(lambda x: len(str(x)))
+                .quantile(q=0.25)
+                < 2.5
+            ):
                 print(
                     "The column REF_AREA has been renamed into COUNTRY_ISO_3, but should be COUNTRY_ISO_2. Now renaming it into COUNTRY_ISO_2"
                 )
@@ -144,6 +166,13 @@ class Cleanser:
             available_time_list[0]
         ].fillna(value=datetime.datetime.now().year)
 
+        # 6 clean numeric data in some data sources the raw_obs_value is numeric but contains square
+        # brackets indicating the low and high, like so 15.6 [12.5 - 20.3]. Extract actual value only
+        if type(grouped_data_iso_filt["RAW_OBS_VALUE"]) == str:
+            grouped_data_iso_filt["RAW_OBS_VALUE"] = grouped_data_iso_filt[
+                "RAW_OBS_VALUE"
+            ].apply(lambda x: float(re.sub(" \[.*\]", "", x)))
+
         # Analyse the number of NA values and print it as log info for user
         percentage_na_values = grouped_data_iso_filt[
             "RAW_OBS_VALUE"
@@ -206,67 +235,3 @@ class Cleanser:
                     )
                 )
         return cleansed_data
-
-
-"""Dev area: 
-
-What should happen here in the cleasning is: 
-
-* Rename columns (column mapping)
-* Classification into 
-    * DIM
-    * YEAR
-    * Country
-    * ATT
-    * Throw away things --> This happens somewhere else
-* Right join to country list to 
-* Create _T for all dimensions and leave an NaN for the OBS_Value --> Migrate some of 
-the things of normalizer here
-
-"""
-
-
-"""
-    def cleanse(
-        cls,
-        raw_data,
-        raw_data_iso_2_col,
-        country_df,
-        country_df_iso2_col,
-        non_dim_cols,
-        time_dim="TIME_PERIOD",
-    ):
-
-        # Group by to obtain the latest available value per group, where group is 'col_list_gb'
-        # Create list of all column to group by
-        col_list = raw_data.columns.to_list()  # list of all columns in the dataframe
-        non_dim_cols_tuple = tuple(
-            non_dim_cols
-        )  # parameters must be passed as list, but the following command requires a tuple
-        col_list_gb = [
-            e for e in col_list if e not in non_dim_cols_tuple
-        ]  # exclude timePeriodStart and value, because these one'saren't used for the groupby statement
-
-        # Some of the columns contain values which Python interprets as lists (e.g. [8.1]). These make the groupby statement malfunction. Convert them to string
-        raw_data[col_list_gb] = raw_data[col_list_gb].astype(str)
-
-        # Retreive the latest available data for each group, where group is 'col_list_gb'
-        grouped_data = raw_data[
-            raw_data[time_dim]
-            == raw_data.groupby(col_list_gb)[time_dim].transform("max")
-        ]
-
-        # Discard countries that aren't part of the final CRBA master list
-        grouped_data_iso_filt = grouped_data.merge(
-            right=country_df,
-            how="right",
-            left_on=raw_data_iso_2_col,
-            right_on=country_df_iso2_col,
-            indicator=True,
-            validate="many_to_one",
-        )
-
-        # return result
-        return grouped_data_iso_filt.sort_values(by=country_df_iso2_col, axis=0)
-
-"""

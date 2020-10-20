@@ -5,6 +5,7 @@ import datetime
 
 def normalizer(
     cleansed_data,
+    sql_subset_query_string,
     variable_type="Continuous variable",
     is_inverted="not inverted",
     whisker_factor=1.5,
@@ -23,25 +24,18 @@ def normalizer(
     """
 
     # Define the dimension subgroup for which normalization is done:
-    # normalization_subset = cleansed_data
-
-    # Empty string which will be filled with subset conditions
-    subset = ""
-
-    # Run loop to get dimensions vaues specified in **dimensions
-    for key in dimensions:
-        subset += "(cleansed_data['{}'] == '{}')&".format(key, dimensions[key])
-
-    # Get rid of the "&-sign" at the end
-    subset = subset.rstrip("& ")
-
-    # Subset the actual dataframe
-    cleansed_data_subset = cleansed_data[eval(subset)]
+    print(sql_subset_query_string)
+    print(type(sql_subset_query_string))
+    if sql_subset_query_string:
+        cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
+    else:
+        cleansed_data_subset = cleansed_data
 
     if variable_type != "Continuous variable":
         print("\n Categorical variable, still have to develop this section")
 
     elif variable_type == "Continuous variable":
+
         # Determine basic descriptive statistics of the distribution that are required for the normalization
         min_val = np.nanmin(cleansed_data_subset[raw_data_col].astype("float"))
         max_val = np.nanmax(cleansed_data_subset[raw_data_col].astype("float"))

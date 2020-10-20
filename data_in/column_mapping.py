@@ -113,7 +113,10 @@ obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 # # # # # # # # # # # # #
 
 # Gender
-dim_sex_tuple = ("SEX", "dimensions.Sex")
+dim_sex_tuple = (
+    "SEX",
+    "dimensions.Sex",
+)
 dim_sex_mapper = {key: "DIM_SEX" for key in dim_sex_tuple}
 
 # Education level
