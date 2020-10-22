@@ -6,11 +6,13 @@ import datetime
 def normalizer(
     cleansed_data,
     sql_subset_query_string,
+    dim_cols,
     variable_type="Continuous variable",
     is_inverted="not inverted",
     whisker_factor=1.5,
     raw_data_col="RAW_OBS_VALUE",
-    **dimensions
+    scaled_data_col_name="SCALED_OBS_VALUE",
+    maximum_score=10,
 ):
     """Normalize the RAW_OBS_VALUES into indicator scores
 
@@ -22,25 +24,68 @@ def normalizer(
     along with the dimension value that is supposed to be taken for the normalization.
 
     """
-
-    # Define the dimension subgroup for which normalization is done:
-    print(sql_subset_query_string)
-    print(type(sql_subset_query_string))
-    if sql_subset_query_string:
-        cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
-    else:
-        cleansed_data_subset = cleansed_data
-
     if variable_type != "Continuous variable":
-        print("\n Categorical variable, still have to develop this section")
+        # Build conditions array
+        unique_values = cleansed_data[raw_data_col].unique()
+        print(unique_values)
+        print(type(unique_values))
+
+        conditions = []
+        for value in sorted(unique_values):  # np.sort() should go here
+            print(value)
+            conditions += [cleansed_data[raw_data_col] == value]
+
+        # Assign variable for readability purpose
+        length_unique_values = len(cleansed_data[raw_data_col].unique())
+
+        # Build norm values array, where 0 =< norm_values => 10
+        norm_values = []
+        divisor = 1
+
+        if (0 in unique_values) | ("0" in unique_values):
+            norm_values += ["No data"]
+            length_unique_values -= 1
+
+        # Define the normalization type, e.g. 0-5-10, or 0 - 3.3 - 6.6 - 10
+        distance = maximum_score / (length_unique_values - divisor)
+
+        for value in range(length_unique_values):
+            norm_values += [round(distance * float(value), 2)]
+
+        # print("Printing the norm_values")
+        # print(norm_values)
+        # print("Printing the conditions")
+        # print(conditions)
+
+        # store normalized scores in SCALED_OBS_VALUE
+        cleansed_data[scaled_data_col_name] = np.select(conditions, norm_values)
 
     elif variable_type == "Continuous variable":
+        """
+        Normalization requires min and max values within a certain group
+        --> Out of subgroups that are defined by the dimension values
+        one dimension subgroup must be selected
+        """
+        # Define the dimension subgroup for which normalization is done:
+        # print("This argument passed in there")
+        # print(cleansed_data)
+
+        if sql_subset_query_string:
+            cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
+        else:
+            cleansed_data_subset = cleansed_data
 
         # Determine basic descriptive statistics of the distribution that are required for the normalization
+        # print("This is where error 22.10. 11:48 occurs")
+        # print(cleansed_data_subset)
+        # print(cleansed_data_subset[raw_data_col])
+        # print(cleansed_data_subset[raw_data_col].astype("float"))
+        # print(type(cleansed_data_subset[raw_data_col].astype("float")))
+
         min_val = np.nanmin(cleansed_data_subset[raw_data_col].astype("float"))
         max_val = np.nanmax(cleansed_data_subset[raw_data_col].astype("float"))
         q1 = cleansed_data_subset[raw_data_col].astype("float").quantile(q=0.25)
-        q2 = cleansed_data_subset[raw_data_col].astype("float").quantile(q=0.50)
+        # q2 = cleansed_data_subset[raw_data_col].astype("float").quantile(q=0.50)
         q3 = cleansed_data_subset[raw_data_col].astype("float").quantile(q=0.75)
         iqr = q3 - q1
 
@@ -102,36 +147,69 @@ def normalizer(
         # Compute the normalized value of the raw data in the column "SCALED"
         # Distinguish between indicators, whose value must be inverted
         if is_inverted == "inverted":
-            cleansed_data_subset["SCALED_OBS_VALUE"] = round(
-                10
-                - 10
+            cleansed_data_subset[scaled_data_col_name] = round(
+                maximum_score
+                - maximum_score
+                * (cleansed_data_subset[raw_data_col].astype("float") - min_val)
+                / tot_range,
+                2,
+            )
+
+        elif is_inverted == "not inverted":
+            cleansed_data_subset[scaled_data_col_name] = round(
+                maximum_score
                 * (cleansed_data_subset[raw_data_col].astype("float") - min_val)
                 / tot_range,
                 2,
             )
         else:
-            cleansed_data_subset["SCALED_OBS_VALUE"] = round(
-                10
-                * (cleansed_data_subset[raw_data_col].astype("float") - min_val)
-                / tot_range,
-                2,
+            raise ValueError(
+                "This is a numeric indicator, so you must specify whether or not it is inverted"
             )
 
-    # join normalized data to original dataframe
-    cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
+        # print("This is where error 22.10. 11:00 occurs")
+        # print(cleansed_data)
+        # print(type(cleansed_data))
+        # print(cleansed_data_subset)
+        # print(type(cleansed_data_subset))
 
-    # cleansed_data = pd.concat([cleansed_data, cleansed_data_subset], axis=1, copy = False)
+        """
+        # In dataframes where DIM_SDG_INDICATOR is present, the value
+        # is sometime interpreted as list, which makes a join impossible
+        # Define available dimensions in the dataset
+        available_dims_list = [
+            col for col in cleansed_data_subset.columns if col in dim_cols
+        ]
+        cleansed_data_subset[available_dims_list] = cleansed_data_subset[
+            available_dims_list
+        ].astype(str)
+
+        available_attr_list = [
+            col for col in cleansed_data_subset.columns if col in attr_cols
+        ]
+        cleansed_data_subset[available_attr_list] = cleansed_data_subset[
+            available_attr_list
+        ].astype(str)
+        """
+
+        # join normalized data to original dataframe
+        cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
+        # print("This is where error 22.10. 11:00 ends")
 
     # insert column to indicate OBS status
+    # print("This is where error S-79 begins")
+    # print(cleansed_data.columns)
+    # print(cleansed_data)
+
     result = cleansed_data.assign(
-        OBS_STATUS=np.where(cleansed_data["SCALED_OBS_VALUE"].isnull(), np.nan, "O")
+        OBS_STATUS=np.where(cleansed_data[scaled_data_col_name].isnull(), "O", np.nan)
     )
 
     # Return result
     return result
 
 
-""" OLD SECTION, replace all <ORIGINALLY THREE QUOTATION MARKS HERE> 
+""" OLD SECTION, replace all <ORIGINALLY THREE QUOTATION MARKS HERE>
 
 <ORIGINALLY THREE QUOTATION MARKS HERE>
 
@@ -461,7 +539,7 @@ def normalizer(
     )
     # Create column OBS_STATUS indicating if the value for a given counry is NaN
     # print(np.where(cleansed_data_full[indicator_raw_value].isnull(), np.nan, "O"))
-    
+
     cleansed_data_full = cleansed_data_full.assign(
         OBS_STATUS=np.where(
             cleansed_data_full[indicator_raw_value].isnull(), np.nan, "O"
@@ -487,11 +565,11 @@ def normalizer(
         var_name="VALUE_TYPE",
         value_name="OBS_"
     )
-    
+
     # Assign indicator code and name
     long_format["INDICATOR_CODE"] = indicator_code
     long_format["INDICATOR_NAME"] = indicator_name
-     # # # # # 
+     # # # # #
 
     # return final dataframe
     return cleansed_data_full

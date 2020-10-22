@@ -15,6 +15,7 @@ class Cleanser:
         dim_cols,
         country_cols,
         time_cols,
+        attr_cols,
         country_list_full,
         crba_country_list,
         variable_type,
@@ -44,7 +45,6 @@ class Cleanser:
         # 0. WHO sources required special cleansing to extract actual raw data
         if "Display Value" in raw_data.columns:
             if variable_type == "Continuous variable":
-                print("We are in the if statement")  # delete line afterwards
                 raw_data["Display Value"] = raw_data["Display Value"].astype(str)
                 raw_data["Display Value"] = pd.to_numeric(
                     raw_data["Display Value"].apply(
@@ -76,11 +76,17 @@ class Cleanser:
             col for col in raw_data.columns if col in country_cols
         ]
 
+        # Define available attribute columns in dataset
+        available_attr_list = [
+            col for col in raw_data.columns if col in attr_cols
+        ]
+
         # 2. Discard superfluous columns, which aren't gonna be part of the final SDMX-structure DF
         raw_data = raw_data[available_cols_list]
 
         # Prep for 3: Cast dim cols as string for groupby
         raw_data[available_dims_list] = raw_data[available_dims_list].astype(str)
+        raw_data[available_attr_list] = raw_data[available_attr_list].astype(str)
 
         # 3. Retrieve the latest available data for each group, where group is 'col_list_gb'
         grouped_data = raw_data[
@@ -166,13 +172,6 @@ class Cleanser:
             available_time_list[0]
         ].fillna(value=datetime.datetime.now().year)
 
-        # 6 clean numeric data in some data sources the raw_obs_value is numeric but contains square
-        # brackets indicating the low and high, like so 15.6 [12.5 - 20.3]. Extract actual value only
-        if type(grouped_data_iso_filt["RAW_OBS_VALUE"]) == str:
-            grouped_data_iso_filt["RAW_OBS_VALUE"] = grouped_data_iso_filt[
-                "RAW_OBS_VALUE"
-            ].apply(lambda x: float(re.sub(" \[.*\]", "", x)))
-
         # Analyse the number of NA values and print it as log info for user
         percentage_na_values = grouped_data_iso_filt[
             "RAW_OBS_VALUE"
@@ -235,3 +234,62 @@ class Cleanser:
                     )
                 )
         return cleansed_data
+
+    @classmethod
+    def encode_categorical_variables(
+        cls,
+        dataframe,
+        encoding_string,
+        obs_raw_value="RAW_OBS_VALUE",
+        sep_character=";",
+        assign_character="=",
+    ):
+        """
+
+        TO DO
+
+        Parameters:
+
+        encoding_string(str): String that contains the mapping. Must follow a specific format, which is defined by sep_character and assign_character. With the default values, for example: "2 = Max. working days limited to 6 days per week or less, 1 = No limit on working days"
+        """
+        print("\n LOOK INTO HERE RIGHT NOW \n")
+
+        # Split string into mapping pairs
+        mapping_pairs = re.split(sep_character, encoding_string)
+
+        # Create nested list with encoded value and original value packed in a sublist
+        mapping_pairs_listed = []
+        for pair in mapping_pairs:
+            mapping_pairs_listed += [re.split(assign_character, pair)]
+            print(mapping_pairs_listed)
+
+        # Define conditions
+        raw_values = []
+        encodings = []
+
+        # Extract raw values and encodings from mapping pairs listed
+        for mapping_sublist in range(len(mapping_pairs_listed)):
+            raw_values += [
+                dataframe[obs_raw_value]
+                == mapping_pairs_listed[mapping_sublist][1].rstrip().lstrip()
+            ]
+            encodings += [mapping_pairs_listed[mapping_sublist][0].rstrip().lstrip()]
+
+        # Encode NaN values
+        raw_values += [dataframe[obs_raw_value].isnull()]
+        raw_values += [dataframe[obs_raw_value] == ""]
+
+        encodings += ["0", "0"]
+
+        dataframe[obs_raw_value] = np.select(
+            condlist=raw_values,
+            choicelist=encodings,
+            default="VALUE WITHOUT MAPPING - PLEASE MAP",
+        )
+
+        # create attr_encoding_raw_values
+        dataframe["ATTR_ENCODING_LABELS"] = encoding_string
+
+        print("\STOP LOOKING INTO HERE RIGHT NOW \n")
+
+        return dataframe
