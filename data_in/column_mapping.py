@@ -1,7 +1,6 @@
 import pathlib
 import json
 
-
 """ 
 This file contains the dictionaries to map column names of different data sources. 
 
@@ -285,6 +284,8 @@ sdmx_df_columns_dims = [
     "DIM_REP_TYPE",
     "DIM_SECTOR",
 ]
+
+
 # Attributes
 sdmx_df_columns_attr = [
     "ATTR_SOURCE_NOTE",

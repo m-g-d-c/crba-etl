@@ -7,53 +7,65 @@ from statistics import median
 
 class Cleanser:
     @classmethod
-    def cleanse(
-        cls,
-        raw_data,
-        mapping_dictionary,
-        final_sdmx_col_list,
-        dim_cols,
-        country_cols,
-        time_cols,
-        attr_cols,
-        country_list_full,
-        crba_country_list,
-        variable_type,
+    def extract_who_raw_data(
+        cls, raw_data, variable_type, display_value_col="Display Value"
     ):
-        """Cleanse raw data
+        """Extract actual numeric data with regex from WHO data
 
-        This function cleanses raw data of any source. Specifically, it does the following things:
-
-        0. For WHO sources: Clean the
-        1. Rename columns: It uses the mapping dictionary passed as an argument to rename columns to adhere to the final SDMX structure and column names
-        2. Discard columns: It discards superfluous columns, that aren't relevant for the final CRBA dataframe
-        3. Retrieve latest datapoint: It retrieves the latest observation value for each country.
-        4. Discard/ add rows: It discards countries, that aren't part of the final CRBA list and adds those countries which aren't in the raw data.
-        5. Fill NA: It fills the dimensions columns of countries who don't have an observation value with "_T" and insert the current year for the variable "TIME_PERIOD" for those countries
+        Numeric data from the WHO often comes in the form of <value [min-max]>, e.g.
+        '13.57 [10.33 - 15.5]'
+        This function extract the actual numeric value and converts the column type to numeric
 
         Parameters:
-        raw_data (obj): Return of function Class "Extract". Should be a pandas dataframe.
-        mapping_dictionary (dict): Dictionary containing the names of columns in the raw dataframe as key and the name of respective target column in the final SDMX dataframe as value
-        final_sdmx_col_list (list): List of all columns in the final SDMX CRBA dataframe.
-        dim_cols (list): List of all dimension columns in the final SDMX CRBA dataframe.
-        country_cols (list): List of all dimension columns in the final SDMX CRBA dataframe.
+        raw_data (obj): Raw data, should be return from Extractor class
+        variable_type(str): String which indicates what type of variable it is. Function will only be applied
+            if the variable type is "Continuous variable".
 
-        Returns:
-        obj: Returns pandas dataframe, which only contains the countries meant to be in CRBA and the latest observed value for the indiator.
-
+        Return:
+        pd.DataFrame in which values of display_value_col are of numeric type and contain only number
         """
-        # 0. WHO sources required special cleansing to extract actual raw data
+        print("\n Calling function 'extract_who_raw_data'...")
+        # Check if we are dealing with a WHO source, which habe the column "Display Value"
         if "Display Value" in raw_data.columns:
             if variable_type == "Continuous variable":
-                raw_data["Display Value"] = raw_data["Display Value"].astype(str)
-                raw_data["Display Value"] = pd.to_numeric(
-                    raw_data["Display Value"].apply(
+                raw_data[display_value_col] = raw_data["Display Value"].astype(str)
+                raw_data[display_value_col] = pd.to_numeric(
+                    raw_data[display_value_col].apply(
                         lambda x: re.sub("No data", "", re.sub(" \[.*\]", "", x))
                     ),
                     errors="coerce",
                 )
             elif variable_type != "Continuous variable":
-                print("We are in the non continous case")
+                pass
+
+        return raw_data
+
+    @classmethod
+    def rename_and_discard_columns(
+        cls, raw_data, mapping_dictionary, final_sdmx_col_list
+    ):
+        """Rename columns in raw dataframe and then discard columns which aren't part of final SDMX dataframe
+
+        This function renames the columns of the raw dataframe it is passed to based on the
+        mappings specified in mapping_dictionary.
+
+        It renames all columns which have a mapping in the mapping_dictionary and then discards
+        all columns which havent been renamed. Therefore, if a column of a raw data frame does not
+        have a corresponding mapping column name in the maping_dictionary, it will be discarded
+        in this cleansing step.
+
+        To keep a column, you must include it in the mapping_dictionary.
+
+        Parameters:
+        raw_data (obs): Raw data, should be return from Extractor class and potentially extract_who_raw_data
+        mapping_dictionary(dict): Mapping dictionary containing the raw_data-column names as keys and the
+            the column names into which they should be mapped as values.
+        final_sdmx_col_list(list): List of all columns names that are in the final SDMX dataframe
+
+        Return:
+        pd.DataFrame containing only (renamed) columns as contained in the final SDMX dataframe
+        """
+        print("\n Calling function 'rename_and_discard_columns'...")
 
         # 1. Rename columns
         raw_data = raw_data.rename(columns=mapping_dictionary)
@@ -65,55 +77,125 @@ class Cleanser:
             col for col in raw_data.columns if col in final_sdmx_col_list
         ]
 
-        # Define available dimensions in the dataset
-        available_dims_list = [col for col in raw_data.columns if col in dim_cols]
-
-        # Define available time columns in dataset
-        available_time_list = [col for col in raw_data.columns if col in time_cols]
-
-        # Define available country columns in dataset
-        available_country_list = [
-            col for col in raw_data.columns if col in country_cols
-        ]
-
-        # Define available attribute columns in dataset
-        available_attr_list = [
-            col for col in raw_data.columns if col in attr_cols
-        ]
-
         # 2. Discard superfluous columns, which aren't gonna be part of the final SDMX-structure DF
         raw_data = raw_data[available_cols_list]
 
-        # Prep for 3: Cast dim cols as string for groupby
-        raw_data[available_dims_list] = raw_data[available_dims_list].astype(str)
-        raw_data[available_attr_list] = raw_data[available_attr_list].astype(str)
-
-        # 3. Retrieve the latest available data for each group, where group is 'col_list_gb'
-        grouped_data = raw_data[
-            raw_data[available_time_list[0]]
-            == raw_data.groupby(by=available_dims_list + available_country_list)[
-                available_time_list[0]
-            ].transform("max")
-        ]
-
-        # DOUBLE_REF_AREA_SOL: make sure that the column "REF_AREA" in the raw data is mapped to the right ISO code
+        # DOUBLE_REF_AREA_SOL make sure that the column "REF_AREA" in the raw data is mapped to the right ISO code
         try:
             if (
-                grouped_data["COUNTRY_ISO_3"]
-                .apply(lambda x: len(str(x)))
-                .quantile(q=0.25)
+                raw_data["COUNTRY_ISO_3"].apply(lambda x: len(str(x))).quantile(q=0.25)
                 < 2.5
             ):
                 print(
                     "The column REF_AREA has been renamed into COUNTRY_ISO_3, but should be COUNTRY_ISO_2. Now renaming it into COUNTRY_ISO_2"
                 )
-                grouped_data = grouped_data.rename(
-                    columns={"COUNTRY_ISO_3": "COUNTRY_ISO_2"}
-                )
+                raw_data = raw_data.rename(columns={"COUNTRY_ISO_3": "COUNTRY_ISO_2"})
         except:
             pass
 
-        # Determine country key column for right join to CRBA list
+        return raw_data
+
+    @classmethod
+    def retrieve_latest_observation(
+        cls,
+        renamed_data,
+        dim_cols,
+        country_cols,
+        time_cols,
+        attr_cols,
+    ):
+        """Retrieve latest observation for each country in a raw dataset
+
+        Most raw datasets contain several observations per country. For CRBA we are
+        only interested in the latest available observation per country.
+
+        This function extracts the latest available observation for each country.
+
+        Parameters:
+        renamed_data (obj): Return of rename_and_discard_columns method
+        dim_cols (list): List of all dimension columns as name in the final SDMX dataframe
+        country_cols (list): List of all country columns as name in the final SDMX dataframe (iso2, iso3, name)
+        time_cols (list): List of all time columns as name in the final SDMX dataframe
+        attr_cols (list): List of all attribute columns as name in the final SDMX dataframe
+
+        Return:
+        pd.DataFrame with only one observation per country (and dimension subgroup, if a raw dataframe contains dimensions as part of a primary composite key)
+        """
+        print("\n Calling function 'retrieve_latest_observation'...")
+
+        # Define available dimensions in the dataset
+        available_dims_list = [col for col in renamed_data.columns if col in dim_cols]
+
+        # Define available time columns in dataset
+        available_time_list = [col for col in renamed_data.columns if col in time_cols]
+
+        # Define available country columns in dataset
+        available_country_list = [
+            col for col in renamed_data.columns if col in country_cols
+        ]
+
+        # Define available attribute columns in dataset
+        available_attr_list = [col for col in renamed_data.columns if col in attr_cols]
+
+        # Prep for 3: Cast dim and attr cols as string for groupby
+        # (sometimes values are [...] which Python interprets as list which can't be joined because hashable)
+        renamed_data[available_dims_list] = renamed_data[available_dims_list].astype(
+            str
+        )
+        renamed_data[available_attr_list] = renamed_data[available_attr_list].astype(
+            str
+        )
+
+        # 3. Retrieve the latest available data for each group, where group is 'col_list_gb'
+        grouped_data = renamed_data[
+            renamed_data[available_time_list[0]]
+            == renamed_data.groupby(by=available_dims_list + available_country_list)[
+                available_time_list[0]
+            ].transform("max")
+        ]
+
+        return grouped_data
+
+    @classmethod
+    def add_and_discard_countries(
+        cls, grouped_data, crba_country_list, country_list_full
+    ):
+        """Add and discard countries (i.e. rows) in raw data set
+
+        The crba_country_list is the list of countries for which a CRBA score is calculated.
+        Raw data never perfectly has data for those countries (and only those).
+
+        Specifically, what can occur is that
+
+        * Countries (or regions) are in the raw data, but not in crba_country_list
+        * Countries are NOT in the raw data, but in crba_country_list
+        * Countries are in both the raw data and in the crba_country_list
+
+        To show that ddata for a given country is missing, this function
+
+        * adds counries to a raw dataframe if they aren't present in there already (to later show NA values)
+        * discards countries/ regions of the raw dataframe is they aren't in the crba_country_list
+
+        The functioncan deal with data frames irrespetive of
+        what the column name for the country column is in the raw data or what type of country
+        data it contains (iso2, iso3, or simply country name).
+
+        Note: The columns names in both crba_country_list and country_list_full must be:
+
+        * COUNTRY_ISO_2, COUNTRY_ISO_3 and COUNTRY_NAME
+
+        Parameters:
+        grouped_data (obj): Return of retrieve_latest_observation method
+        crba_country_list (obj): DataFrame containing the list of those countries included in the final CRBA SDMX df
+        country_list_full (obj): DataFrame containing all possible country name variations
+
+        return:
+        DataFrame which contains at least one row for each country (or more if there dimensions
+        in the dataset), and only those countries which are supposed to be in the final CRBA SDMX dataframe.
+        """
+        print("\n Calling function 'add_and_discard_countries'...")
+
+        # Determine intersection of country key col in CRBA country list and raw data
         country_col_right_join = [
             col for col in crba_country_list.columns if col in grouped_data.columns
         ]
@@ -144,8 +226,8 @@ class Cleanser:
                 validate="many_to_one",
             )
         elif med_country_col_len > 3.5:
-            # Column in raw dataframe is country name, so first assign ISO_2 and 3 codes
-            # The raw data only contains country names. Assign ISO codes to these country names. Use country full list to make sure each country name variation is captured
+            # The raw data only contains country names. Assign ISO codes to these country names.
+            # Use country full list to make sure each country name variation is captured
             grouped_data_iso = grouped_data.merge(
                 right=country_list_full,
                 how="left",
@@ -162,6 +244,69 @@ class Cleanser:
                 validate="many_to_one",
             )
 
+        return grouped_data_iso_filt
+
+    @classmethod
+    def add_cols_fill_cells(
+        cls,
+        grouped_data_iso_filt,
+        dim_cols,
+        time_cols,
+        indicator_name_string,
+        index_name_string,
+        issue_name_string,
+        category_name_string,
+        indicator_code_string,
+        indicator_name_col="INDICATOR_NAME",
+        index_name_col="INDICATOR_INDEX",
+        issue_name_col="INDICATOR_ISSUE",
+        category_name_col="INDICATOR_CATEGORY",
+        indicator_code_col="INDICATOR_CODE",
+        crba_release_year_col="CRBA_RELEASE_YEAR",
+    ):
+        """Add several columns and fill cell values of dimensions and year column
+
+        The final SDMX dataframe structure contains several columns, which are not present
+        in ra data, e.g. the indicator code and name. This function adds those columns.
+
+        It also fill cell values, if they are NaN, namely:
+
+        * _T for dimension columns with NaN as cell value
+        * Current year for TIME_PERIOD
+
+        Parameters:
+        grouped_data_iso_filt (obj): Return of add_and_discard_countries
+        dim_cols (list): List of all dimension columns as name in the final SDMX dataframe
+        time_cols (list): List of all time columns as name in the final SDMX dataframe
+        indicator_name_string (str): Indicator name of indicator that is calculated from the raw data
+        index_name_string (str): Index name of indicator
+        issue_name_string (str): Issue name of indicator
+        category_name_string (str): Category name of indicator
+        indicator_code_string (str): Indicator code of indicator
+        indicator_name_col (str): Your desired name for the indicator name column
+        index_name_col (str): Your desired name for the index name column
+        issue_name_col (str): Your desired name for the issue name column
+        category_name_col (str): Your desired name for the category name column
+        indicator_code_col (str): Your desired name for the indicator code column
+        crba_release_year_col (str): Your desired name for the CRBA releaseyea column
+
+        Return:
+        Dataframe with added columns and filled in cell values
+
+        """
+        print("\n Calling function 'add_cols_fill_cells'...")
+
+        # # # Fill in _T and year values
+        # Define available dimensions in the dataset
+        available_dims_list = [
+            col for col in grouped_data_iso_filt.columns if col in dim_cols
+        ]
+
+        # Define available time columns in dataset
+        available_time_list = [
+            col for col in grouped_data_iso_filt.columns if col in time_cols
+        ]
+
         # 5a Fill in _T For each dimension, where it is NaN
         grouped_data_iso_filt[available_dims_list] = grouped_data_iso_filt[
             available_dims_list
@@ -172,34 +317,53 @@ class Cleanser:
             available_time_list[0]
         ].fillna(value=datetime.datetime.now().year)
 
-        # Analyse the number of NA values and print it as log info for user
-        percentage_na_values = grouped_data_iso_filt[
-            "RAW_OBS_VALUE"
-        ].isna().sum() / len(grouped_data_iso_filt["RAW_OBS_VALUE"])
+        # # # Add additional columns
+        # Indicator name
+        grouped_data_iso_filt[indicator_name_col] = indicator_name_string
 
-        print(
-            "Cleansing done. There are {} rows in the dataframe and {}% have a NA-value in the column 'OBS_RAW_VALUE".format(
-                len(grouped_data_iso_filt["RAW_OBS_VALUE"]),
-                round(percentage_na_values * 100, 2),
-            )
-        )
+        # Index name
+        grouped_data_iso_filt[index_name_col] = index_name_string
 
-        # Return cleansed dataframe
+        # Issue name
+        grouped_data_iso_filt[issue_name_col] = issue_name_string
+
+        # Category name
+        grouped_data_iso_filt[category_name_col] = indicator_code_string
+
+        # Create column indicator code
+        grouped_data_iso_filt[indicator_code_col] = indicator_code_string
+
+        # YEAR_CRBA_RELEASE with current year
+        grouped_data_iso_filt[crba_release_year_col] = datetime.datetime.now().year
+
         return grouped_data_iso_filt
 
     @classmethod
     def map_values(cls, cleansed_data, value_mapping_dict):
         """Map column values (assign consistent values)
 
-        TO
+        DIfferent sources may have different values for a certain variable, but may actally mean the
+        same thing,. For example, in one data source the value "male" in "Gender" migh be "m", in
+        others it might be "mle".
 
-        Parameters:
-        TO DO
+        This function map those values into one consistent system, as defined in the value_mapping_dict.
+        The value_mapping_dict should fhave the following structure:
+
+        value_mapper = {
+            <column name in final sdmx df> : {
+                <target value> : <list of values to be converted into the target value>
+            }
+        }
+
+        Paramteres:
+        cleansed_data (obj): Cleansed raw data frame (after columns have been renamed!!!)
+        value_mapping_dict (dict): Dictionary containing the mappings from raw data values --> desired value
 
         Return:
-        TO DO
+        Dataframe with converted cell values as stipulated in value_mapping_dict
 
         """
+        print("\n Calling function 'map_values'...")
 
         # Loop through all possible columns as defined for the final SDMX structure
         for key in value_mapping_dict:
@@ -244,52 +408,93 @@ class Cleanser:
         sep_character=";",
         assign_character="=",
     ):
-        """
+        """Encode categorical raw data values into ordinal variables
 
-        TO DO
+        The scaler funtion assigns scores, but requires numeric, raw data.
+
+        This function encodes the string values of categorical raw data (e.g. "Yes", "ratified", or "Older than 18 years")
+        into a system of ordinal variables encoded in numbers. Depending on the number of values in
+        the categorical raw data, the encoded system can be anywhere between "1-2" and
+        "0-1-2-3-4-5-6-7"
+
+        The raw observation values will be overwritten with enodede system, but a new column is added
+        to the dataframe which contains an explanation of the encodings.
+
+        The encoding must be passed as string to the ecnoding_string parameter. The encoded value and original
+        value must be connected with the assign character. Encoded-value/original-value pairs must be separater
+        by sep_character.
 
         Parameters:
+        dataframe (obj): Raw dataframe containing categorical raw data
+        encoding_string (str): String containing the Encoded-value/original-value pairs
+        obs_raw_value (str): Column name of column containing raw data
+        sep_character (str): Character by which Encoded-value/original-value pairs are separated
+        assign_character (str): Character assigning Encoded-value and original-values
 
-        encoding_string(str): String that contains the mapping. Must follow a specific format, which is defined by sep_character and assign_character. With the default values, for example: "2 = Max. working days limited to 6 days per week or less, 1 = No limit on working days"
+        Return:
+        Dataframe with encoded categorical, raw data and an added column ATTR_ENCODING_LABELS containing encoding labels
         """
-        print("\n LOOK INTO HERE RIGHT NOW \n")
 
-        # Split string into mapping pairs
-        mapping_pairs = re.split(sep_character, encoding_string)
+        print("\n Calling function 'encode_categorical_variables'...")
 
-        # Create nested list with encoded value and original value packed in a sublist
-        mapping_pairs_listed = []
-        for pair in mapping_pairs:
-            mapping_pairs_listed += [re.split(assign_character, pair)]
-            print(mapping_pairs_listed)
+        if encoding_string != "Continuous variable":
 
-        # Define conditions
-        raw_values = []
-        encodings = []
+            # Split string into mapping pairs
+            mapping_pairs = re.split(sep_character, encoding_string)
 
-        # Extract raw values and encodings from mapping pairs listed
-        for mapping_sublist in range(len(mapping_pairs_listed)):
-            raw_values += [
-                dataframe[obs_raw_value]
-                == mapping_pairs_listed[mapping_sublist][1].rstrip().lstrip()
-            ]
-            encodings += [mapping_pairs_listed[mapping_sublist][0].rstrip().lstrip()]
+            # Create nested list with encoded value and original value packed in a sublist
+            mapping_pairs_listed = []
+            for pair in mapping_pairs:
+                mapping_pairs_listed += [re.split(assign_character, pair)]
+                # print(mapping_pairs_listed)
 
-        # Encode NaN values
-        raw_values += [dataframe[obs_raw_value].isnull()]
-        raw_values += [dataframe[obs_raw_value] == ""]
+            # Define conditions
+            raw_values = []
+            encodings = []
 
-        encodings += ["0", "0"]
+            # Extract raw values and encodings from mapping pairs listed
+            for mapping_sublist in range(len(mapping_pairs_listed)):
+                raw_values += [
+                    dataframe[obs_raw_value]
+                    == mapping_pairs_listed[mapping_sublist][1].rstrip().lstrip()
+                ]
+                encodings += [
+                    mapping_pairs_listed[mapping_sublist][0].rstrip().lstrip()
+                ]
 
-        dataframe[obs_raw_value] = np.select(
-            condlist=raw_values,
-            choicelist=encodings,
-            default="VALUE WITHOUT MAPPING - PLEASE MAP",
-        )
+            # Encode NaN values
+            raw_values += [dataframe[obs_raw_value].isnull()]
+            raw_values += [dataframe[obs_raw_value] == ""]
 
-        # create attr_encoding_raw_values
-        dataframe["ATTR_ENCODING_LABELS"] = encoding_string
+            encodings += ["0", "0"]
 
-        print("\STOP LOOKING INTO HERE RIGHT NOW \n")
+            dataframe[obs_raw_value] = np.select(
+                condlist=raw_values,
+                choicelist=encodings,
+                default="VALUE WITHOUT MAPPING - PLEASE MAP",
+            )
+
+            # create attr_encoding_raw_values
+            dataframe["ATTR_ENCODING_LABELS"] = encoding_string
+
+        else:
+            pass
 
         return dataframe
+
+    @classmethod
+    def report_na_values(cls, cleansed_data, raw_obs_col="RAW_OBS_VALUE"):
+        """
+        Calulcate how man NA values there are in a cleansed dataframe inthe column "RAW_OBS_VALUE
+        """
+        # Analyse the number of NA values and print it as log info for user
+        percentage_na_values = cleansed_data[raw_obs_col].isna().sum() / len(
+            cleansed_data[raw_obs_col]
+        )
+
+        print(
+            "Cleansing done. There are {} rows in the dataframe and {}% have a NA-value in the column 'OBS_RAW_VALUE".format(
+                len(cleansed_data[raw_obs_col]),
+                round(percentage_na_values * 100, 2),
+            )
+        )
