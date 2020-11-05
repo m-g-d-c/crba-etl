@@ -257,12 +257,27 @@ class Cleanser:
         issue_name_string,
         category_name_string,
         indicator_code_string,
+        indicator_source_string,
+        indicator_source_body_string,
+        indicator_description_string,
+        indicator_explanation_string,
+        indicator_data_extraction_methodology_string,
+        source_title_string,
+        source_api_link_string,
         indicator_name_col="INDICATOR_NAME",
         index_name_col="INDICATOR_INDEX",
         issue_name_col="INDICATOR_ISSUE",
         category_name_col="INDICATOR_CATEGORY",
         indicator_code_col="INDICATOR_CODE",
+        indicator_source_col="ATTR_SOURCE",
+        indicator_source_body_col="ATTR_SOURCE_BODY",
+        indicator_description_col="ATTR_INDICATOR_DESCRIPTION",
+        indicator_explanation_col="ATTR_INDICATOR_EXPLANATION",
+        indicator_data_extraction_methodology_col="ATTR_DATA_EXTRACTION_METHDOLOGY",
         crba_release_year_col="CRBA_RELEASE_YEAR",
+        source_title_col="ATTR_SOURCE_TITLE",
+        source_api_link_col="ATTR_API_ENDPOINT_URL",
+        time_period_col="TIME_PERIOD",
     ):
         """Add several columns and fill cell values of dimensions and year column
 
@@ -283,12 +298,26 @@ class Cleanser:
         issue_name_string (str): Issue name of indicator
         category_name_string (str): Category name of indicator
         indicator_code_string (str): Indicator code of indicator
+        indicator_source_string (str): Source (ideally a URL) of the indicator
+        indicator_source_body_string (str): Source body, i.e. the insitution of the source (e.g. SDG Database, ILO, ...)
+        indicator_description_string (str): Indicator description of indicator
+        source_title_string (str): Title of the source of the indicator
+        indicator_explanation_string (str): Indicator explanation (why was it included in the CRBA?)
+        indicator_data_extraction_methodology_string (str): Notes/comments about how data was extracted
+        source_api_link_string (str): If data was drawn from an API, provide the URL here.
         indicator_name_col (str): Your desired name for the indicator name column
         index_name_col (str): Your desired name for the index name column
         issue_name_col (str): Your desired name for the issue name column
         category_name_col (str): Your desired name for the category name column
         indicator_code_col (str): Your desired name for the indicator code column
+        indicator_source_col (str): Your desired name for the attribute_source column
+        indicator_source_body_col (str): Your desired name for the attribute_source_body column
         crba_release_year_col (str): Your desired name for the CRBA releaseyea column
+        indicator_description_col (str): Your desired name for the indicator description column
+        source_title_col (str): Your desired name for the source title column
+        indicator_explanation_col (str): Your desired name for the indicator explanation (justification) column
+        indicator_data_extraction_methodology_col (str): Your desired name for extraction methdology column
+        source_api_link_col (str): Your desired name for API link URL (only for API drawn data sources)
 
         Return:
         Dataframe with added columns and filled in cell values
@@ -306,6 +335,11 @@ class Cleanser:
         available_time_list = [
             col for col in grouped_data_iso_filt.columns if col in time_cols
         ]
+
+        # UN Treaty data does not have a column for TIME_PERIOD, add here
+        if len(available_time_list) == 0:
+            grouped_data_iso_filt[time_period_col] = datetime.datetime.now().year
+            available_time_list += [time_period_col]
 
         # 5a Fill in _T For each dimension, where it is NaN
         grouped_data_iso_filt[available_dims_list] = grouped_data_iso_filt[
@@ -328,10 +362,33 @@ class Cleanser:
         grouped_data_iso_filt[issue_name_col] = issue_name_string
 
         # Category name
-        grouped_data_iso_filt[category_name_col] = indicator_code_string
+        grouped_data_iso_filt[category_name_col] = category_name_string
 
         # Create column indicator code
         grouped_data_iso_filt[indicator_code_col] = indicator_code_string
+
+        # Create column to indicate source
+        grouped_data_iso_filt[indicator_source_col] = indicator_source_string
+
+        # Create column to indicate source body
+        grouped_data_iso_filt[indicator_source_body_col] = indicator_source_body_string
+
+        # Create column to indicate indicator description
+        grouped_data_iso_filt[indicator_description_col] = indicator_description_string
+
+        # Create column to indicate indicator explanation
+        grouped_data_iso_filt[indicator_explanation_col] = indicator_explanation_string
+
+        # Create column to indicate dataa extraction methdology
+        grouped_data_iso_filt[
+            indicator_data_extraction_methodology_col
+        ] = indicator_data_extraction_methodology_string
+
+        # Create column to indicate source title
+        grouped_data_iso_filt[source_title_col] = source_title_string
+
+        # Create column to indicate api/ endpoint link
+        grouped_data_iso_filt[source_api_link_col] = source_api_link_string
 
         # YEAR_CRBA_RELEASE with current year
         grouped_data_iso_filt[crba_release_year_col] = datetime.datetime.now().year
@@ -438,7 +495,6 @@ class Cleanser:
         print("\n Calling function 'encode_categorical_variables'...")
 
         if encoding_string != "Continuous variable":
-
             # Split string into mapping pairs
             mapping_pairs = re.split(sep_character, encoding_string)
 
@@ -455,9 +511,11 @@ class Cleanser:
             # Extract raw values and encodings from mapping pairs listed
             for mapping_sublist in range(len(mapping_pairs_listed)):
                 raw_values += [
-                    dataframe[obs_raw_value]
+                    dataframe[obs_raw_value].astype(
+                        str
+                    )  # convert to string in case raw value is numeric
                     == mapping_pairs_listed[mapping_sublist][1].rstrip().lstrip()
-                ]
+                ]  # delete str and after [1] aprentheses again
                 encodings += [
                     mapping_pairs_listed[mapping_sublist][0].rstrip().lstrip()
                 ]
@@ -483,7 +541,9 @@ class Cleanser:
         return dataframe
 
     @classmethod
-    def report_na_values(cls, cleansed_data, raw_obs_col="RAW_OBS_VALUE"):
+    def create_log_report(
+        cls, cleansed_data, raw_obs_col="RAW_OBS_VALUE", year_col="TIME_PERIOD"
+    ):
         """
         Calulcate how man NA values there are in a cleansed dataframe inthe column "RAW_OBS_VALUE
         """
@@ -493,8 +553,71 @@ class Cleanser:
         )
 
         print(
-            "Cleansing done. There are {} rows in the dataframe and {}% have a NA-value in the column 'OBS_RAW_VALUE".format(
+            "Cleansing done. This is some basic information about the data: \n \n There are {} rows in the dataframe and {}% have a NA-value in the column 'OBS_RAW_VALUE".format(
                 len(cleansed_data[raw_obs_col]),
                 round(percentage_na_values * 100, 2),
             )
         )
+
+        try:
+            cleansed_data[year_col] = pd.to_numeric(cleansed_data[year_col])
+        except:
+            pass
+
+        summary_year = cleansed_data[year_col].describe()
+
+        print(
+            "\n \n This is the summary of the column 'TIME_PERIOD': {}".format(
+                summary_year
+            )
+        )
+
+    @classmethod
+    def encode_un_treaty_data(
+        cls,
+        dataframe,
+        attr_rat_det_value="ATTR_RATIFICATION_DET",
+        obs_raw_value="RAW_OBS_VALUE",
+        encoding_label_string="Has the country done one of the following things with treaty? Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s). Unless the date indicated is not followed by an encoding, it shows when the treaty was ratified. If it is followed by an encoding sign (e.g. 'a'), the encoding sign indicates its status.",
+    ):
+        """Encode un treaty data
+
+        This function is very similar (almost a child class) of the encode_categorical_variables method.
+        It is meant to be applied to all UN Treaty data, which are indicated with "UN Treaties" in the
+        indicator dictionary.
+
+        Like the encode_categorical_variables method, it RAW_OBS_VALUE into a numeric variable,
+        so that it can be passed to the scaler function. However, this function does this
+        by looking at the column "ATTR_RATIFICATION_DET", which also maintains.
+
+        This column contains information about the status of a treaty (ratified, succeeded to, ...)
+
+        Parameters:
+        dataframe (obj): Pandas dataframe, should be the return of the method 'add_and_discard_countries'
+        attr_rat_det_value (str): Name of column containig the information when a treaty was ratified/ what its status is
+        obs_raw_value (str): Name of the cilumn that is supposed to contain the raw observation value. This will contain the encoded numbers and is created by the function.
+        encoding_label_string (str): The (string) value to be inserted in the column ATTR_ENCODING_LABELS.
+
+        Return:
+        Pandas DataFrame with RAW_OBS_VALUE added, containing encoded values and a column added containig decoding instructions.
+        """
+        # Define condition: Only countries which have signed are listed. The ones not listed will have a NaN value (as a result of the previous join)
+        conditions = [
+            dataframe[attr_rat_det_value].isnull() == False,
+            dataframe[attr_rat_det_value].isnull() == True,
+        ]
+
+        # Define encodings
+        encodings = [2, 1]
+
+        # Do the encoding
+        dataframe[obs_raw_value] = np.select(
+            condlist=conditions,
+            choicelist=encodings,
+            default="VALUE WITHOUT MAPPING - PLEASE MAP",
+        )
+
+        # create attr_encoding_raw_values
+        dataframe["ATTR_ENCODING_LABELS"] = encoding_label_string
+
+        return dataframe

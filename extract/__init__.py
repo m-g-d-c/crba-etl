@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod, abstractproperty
 
 import pandas as pd
 import requests
+import bs4 as bs
 
 
 class Extractor(ABC):
@@ -97,10 +98,31 @@ class SDMXExtractor(CSVExtractor):
     }
 
 
-"""
 class HTMLExtractor(Extractor):
 
     type = "html"
 
     @classmethod
-"""
+    def data(cls, url):
+        # Get http request
+        response = cls.api_request(url.strip())
+
+        # Soupify the actual html content
+        soup = bs.BeautifulSoup(response.text, features="lxml")
+
+        # Extract the target table as attribute
+        target_table = str(
+            soup.find_all(
+                "table",
+                {
+                    "class": "table table-striped table-bordered table-hover table-condensed"
+                },
+            )
+        )
+
+        # Create dataframe with the data
+        raw_data = pd.read_html(io=target_table, header=0)[
+            0
+        ]  # return is a list of DFs, specify [0] to get actual DF
+        # Return result
+        return raw_data

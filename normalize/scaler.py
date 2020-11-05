@@ -55,8 +55,7 @@ def normalizer(
         unique_values = cleansed_data[raw_data_col].unique()
 
         conditions = []
-        for value in sorted(unique_values):  # np.sort() should go here
-            # print(value)
+        for value in sorted(unique_values):
             conditions += [cleansed_data[raw_data_col] == value]
 
         # Assign variable for readability purpose
@@ -181,7 +180,7 @@ def normalizer(
 
     # Create new column called "OBS_STATUS", which has value "O" if raw data is NaN
     result = cleansed_data.assign(
-        OBS_STATUS=np.where(cleansed_data[scaled_data_col_name].isnull(), "O", np.nan)
+        OBS_STATUS=np.where(cleansed_data[raw_data_col].isnull(), "O", np.nan)
     )
 
     # Return result

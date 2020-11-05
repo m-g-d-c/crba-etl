@@ -76,22 +76,29 @@ then rerun the main file.
 # # # # Country # # # #
 # # # # # # # # # # # # #
 # Country name
-country_tuple = ("geoAreaName",)
+country_tuple = (
+    "geoAreaName",
+    "COUNTRY_NAME",
+    "Geographic Area",
+    "Participant",
+    "Participant 2, 3, 4",
+    "Participant 2",
+)
 country_mapper = {key: "COUNTRY_NAME" for key in country_tuple}
 
 # Iso 2
-iso_2_tuple = ("REF_AREA",)
+iso_2_tuple = ("REF_AREA", "COUNTRY_ISO_2")
 iso_2_mapper = {key: "COUNTRY_ISO_2" for key in iso_2_tuple}
 
 # Iso 3
-iso_3_tuple = ("REF_AREA", "COUNTRY")
+iso_3_tuple = ("REF_AREA", "COUNTRY", "COUNTRY_ISO_3")
 iso_3_mapper = {key: "COUNTRY_ISO_3" for key in iso_3_tuple}
 
 # # # # # # # # # # # # #
 # # # # Year # # # #
 # # # # # # # # # # # # #
 # Year column
-year_tuple = ("TIME_PERIOD", "YEAR", "timePeriod", "timePeriodStart")
+year_tuple = ("TIME_PERIOD", "YEAR", "timePeriod", "timePeriodStart", "Year")
 year_mapper = {key: "TIME_PERIOD" for key in year_tuple}
 
 # # # # # # # # # # # # #
@@ -104,6 +111,7 @@ obs_value_tuple = (
     # "Numeric", How to deal with this?
     "Display Value",
     "value",
+    "RAW_OBS_VALUE",
 )
 obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 
@@ -112,57 +120,51 @@ obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 # # # # # # # # # # # # #
 
 # Gender
-dim_sex_tuple = (
-    "SEX",
-    "dimensions.Sex",
-)
+dim_sex_tuple = ("SEX", "dimensions.Sex", "DIM_SEX", "Sex")
 dim_sex_mapper = {key: "DIM_SEX" for key in dim_sex_tuple}
 
 # Education level
-dim_edu_level_tuple = ("EDU_LEVEL",)
+dim_edu_level_tuple = ("EDU_LEVEL", "DIM_EDU_LEVEL")
 dim_edu_level_mapper = {key: "DIM_EDU_LEVEL" for key in dim_edu_level_tuple}
 
 # Age
-dim_age_tuple = ("AGE",)
+dim_age_tuple = ("AGE", "DIM_AGE")
 dim_age_mapper = {key: "DIM_AGE" for key in dim_age_tuple}
 
 # Age group
-dim_age_group_tuple = (
-    "AGEGROUP",
-    "dimensions.Age",
-)
+dim_age_group_tuple = ("AGEGROUP", "dimensions.Age", "DIM_AGE_GROUP", "Current age")
 dim_age_group_mapper = {key: "DIM_AGE_GROUP" for key in dim_age_group_tuple}
 
 # Management level
-dim_management_level_tuple = ("OCU",)
+dim_management_level_tuple = ("OCU", "DIM_MANAGEMENT_LEVEL")
 dim_management_level_mapper = {
     key: "DIM_MANAGEMENT_LEVEL" for key in dim_management_level_tuple
 }
 
 # Area type (rural vs urban)
-dim_area_type_tuple = ("RESIDENCEAREATYPE",)
+dim_area_type_tuple = ("RESIDENCEAREATYPE", "DIM_AREA_TYPE")
 dim_area_type_mapper = {key: "DIM_AREA_TYPE" for key in dim_area_type_tuple}
 
 # Quantile
-dim_quantile_tuple = ("dimensions.Quantile",)
+dim_quantile_tuple = ("dimensions.Quantile", "DIM_QUANTILE")
 dim_quantile_mapper = {key: "DIM_QUANTILE" for key in dim_quantile_tuple}
 
 # SDG Goal --> Indicators S-183, S-184 and S-185 have the SDG indicator as dimension,
 # This is because in the SDG api the indicators is mapped to three SDG goals
 # The actual values in these datasets are simply duplicates, so any of them can be taken
-dim_sdg_indicator_tuple = ("indicator",)
+dim_sdg_indicator_tuple = ("indicator", "DIM_SDG_INDICATOR")
 dim_sdg_indicator_mapper = {key: "DIM_SDG_INDICATOR" for key in dim_sdg_indicator_tuple}
 
 # Type of occupation
-dim_ocu_type_tuple = ("dimensions.Type of occupation",)
+dim_ocu_type_tuple = ("dimensions.Type of occupation", "DIM_OCU_TYPE")
 dim_ocu_type_mapper = {key: "DIM_OCU_TYPE" for key in dim_ocu_type_tuple}
 
 # Reporting type
-dim_reporting_type_tuple = ("dimensions.Reporting Type",)
+dim_reporting_type_tuple = ("dimensions.Reporting Type", "DIM_REP_TYPE")
 dim_reporting_type_mapper = {key: "DIM_REP_TYPE" for key in dim_reporting_type_tuple}
 
 # Activity (sector)
-dim_sector_tuple = ("dimensions.Activity",)
+dim_sector_tuple = ("dimensions.Activity", "DIM_SECTOR")
 dim_sector_mapper = {key: "DIM_SECTOR" for key in dim_sector_tuple}
 
 
@@ -171,52 +173,74 @@ dim_sector_mapper = {key: "DIM_SECTOR" for key in dim_sector_tuple}
 # # # # # # # # # # # # #
 
 # Source note
-source_note_tuple = ("SOURCE_NOTE",)
-source_mapper = {key: "ATTR_SOURCE_NOTE" for key in source_note_tuple}
+source_note_tuple = ("SOURCE_NOTE", "ATTR_SOURCE_NOTE", "OBS_FOOTNOTE")
+source_mapper = {key: "ATTR_NOTE_OF_SOURCE" for key in source_note_tuple}
 
 # Indicator note from source
-source_indicator_note_tuple = ("INDICATOR_NOTE",)
+source_indicator_note_tuple = ("INDICATOR_NOTE", "ATTR_SOURCE_INDICATOR_NOTE")
 source_indicator_mapper = {
-    key: "ATTR_SOURCE_INDICATOR_NOTE" for key in source_indicator_note_tuple
+    key: "ATTR_INDICATOR_NOTE_OF_SOURCE" for key in source_indicator_note_tuple
 }
 
 # Unit measure
-unit_measure_tuple = ("UNIT_MEASURE", "attributes.Units")
+unit_measure_tuple = ("UNIT_MEASURE", "attributes.Units", "ATTR_UNIT_MEASURE")
 unit_measure_mapper = {key: "ATTR_UNIT_MEASURE" for key in unit_measure_tuple}
 
 # Observation status
-obs_status_tuple = ("OBS_STATUS",)
+obs_status_tuple = ("OBS_STATUS", "Observation Status")
 obs_status_mapper = {key: "ATTR_SOURCE_OBS_STATUS" for key in obs_status_tuple}
 
 # Source comments
-source_comments_tuple = ("Comments",)
-source_comments_mapper = {key: "ATTR_SOURCE_COMMENTS" for key in source_comments_tuple}
+source_comments_tuple = ("Comments", "ATTR_SOURCE_COMMENTS")
+source_comments_mapper = {
+    key: "ATTR_COMMENT_OF_SOURCE" for key in source_comments_tuple
+}
 
 # SDG indicator
-sdg_indicator_tuple = ("indictor",)
+sdg_indicator_tuple = ("indictor", "ATTR_SDG_INDICATOR")
 sdg_indicator_mapper = {key: "ATTR_SDG_INDICATOR" for key in sdg_indicator_tuple}
 
 # SDG indicator description
-sdg_indicator_desc_tuple = ("seriesDescription",)
+sdg_indicator_desc_tuple = ("seriesDescription", "ATTR_SDG_INDICATOR_DESCRIPTION")
 sdg_indicator_desc_mapper = {
     key: "ATTR_SDG_INDICATOR_DESCRIPTION" for key in sdg_indicator_desc_tuple
 }
 
 # Source of source
-source_of_source_tuple = ("source",)
+source_of_source_tuple = ("source", "ATTR_SOURCE_OF_SOURCE", "DATA_SOURCE")
 source_of_source_mapper = {
     key: "ATTR_SOURCE_OF_SOURCE" for key in source_of_source_tuple
 }
 
 # Source of source footnotes
-footnotes_of_source_tuple = ("footnotes",)
+footnotes_of_source_tuple = ("footnotes", "ATTR_FOOTNOTE_OF_SOURCE")
 footnotes_of_source_mapper = {
     key: "ATTR_FOOTNOTE_OF_SOURCE" for key in footnotes_of_source_tuple
 }
 
 # Observation type
-obs_type_tuple = ("attribute.Nature",)
+obs_type_tuple = ("attribute.Nature", "ATTR_SOURCE_OBS_TYPE")
 obs_type_mapper = {key: "ATTR_SOURCE_OBS_TYPE" for key in obs_type_tuple}
+
+# UN Treaty ratification years and details
+un_treaty_rat_details_tup = (
+    "Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d)",
+    "Ratification, Accession(a), Succession(d)",
+    "Definitive signature(s), Acceptance(A)",
+    "Ratification, Acceptance(A), Approval(AA), Formal confirmation(c), Accession(a), Succession(d)",
+    "Approval(AA), Acceptance(A), Accession(a), Succession(d), Ratification",
+    "Ratification, Acceptance(A), Approval(AA), Accession(a)",
+    "Approval(AA), Formal confirmation(c), Acceptance(A), Accession(a), Succession(d), Ratification",
+    "Ratification, Acceptance(A), Approval(AA), Accession(a)",
+    "Ratification, Accession(a), Acceptance(A), Approval(AA)",
+    "Ratification, Accession(a), Succession(d)",
+    "Ratification, Acceptance(A), Accession(a), Succession(d)",
+    "Definitive signature(s), Ratification, Acceptance(A), Approval(AA), Accession(a)",
+    "Accession(a), Ratification",
+)
+un_treaty_rat_details_mapper = {
+    key: "ATTR_RATIFICATION_DET" for key in un_treaty_rat_details_tup
+}
 
 
 # Create list of all mapper dictionaries
@@ -249,6 +273,7 @@ mapper_tuple_list = [
     source_of_source_mapper,
     footnotes_of_source_mapper,
     obs_type_mapper,
+    un_treaty_rat_details_mapper,
 ]
 
 # Define the mapping dictionary
@@ -298,6 +323,7 @@ sdmx_df_columns_attr = [
     "ATTR_SOURCE_OF_SOURCE",
     "ATTR_FOOTNOTE_OF_SOURCE",
     "ATTR_SOURCE_OBS_TYPE",
+    "ATTR_RATIFICATION_DET",
 ]
 
 # All columns list

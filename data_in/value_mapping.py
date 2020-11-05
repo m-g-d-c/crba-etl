@@ -39,9 +39,9 @@ This is a list of the columns in the final SDMX dataframe:
 
 value_mapper = {
     "DIM_SEX": {
-        "BOTH_SEXES": ["_T", "BOTHSEX", "BTSX", "SEX_T"],
-        "MALE": ["M", "MALE", "MLE", "SEX_M"],
-        "FEMALE": ["F", "FEMALE", "FMLE", "SEX_F"],
+        "BOTH_SEXES": ["_T", "BOTHSEX", "BTSX", "SEX_T", "Total"],
+        "MALE": ["M", "MALE", "MLE", "SEX_M", "Male"],
+        "FEMALE": ["F", "FEMALE", "FMLE", "SEX_F", "Female"],
     },
     "DIM_EDU_LEVEL": {
         "LOWER SECONDARY EDUCATION": ["L2"],
@@ -54,7 +54,7 @@ value_mapper = {
         "SCHOOL_AGE_POPULATION": ["SCH_AGE_GROUP"],
     },
     "DIM_AGE_GROUP": {
-        "_T": ["_T"],
+        "_T": ["_T", "Total"],
         "10-19 YEARS": ["YEARS10-19"],
         "5-19 YEARS": ["YEARS05-19"],
         "5-09 YEARS": ["YEARS05-09"],
@@ -69,6 +69,9 @@ value_mapper = {
         "15-24 YEARS": ["15-24"],
         "15+ YEARS": ["15+"],
         "25+ YEARS": ["25+"],
+        "13-15 YEARS": ["13 to 15 years old"],
+        "13-17 YEARS": ["13 to 17 years old"],
+        "15 YEARS": ["15 years old"],
     },
     "DIM_MANAGEMENT_LEVEL": {
         "OCU_MGMT_SENIOR": ["OCU_MGMT_SENIOR"],
@@ -81,7 +84,7 @@ value_mapper = {
         "URBAN": ["URB"],
         "_T": [""],
     },
-    # "DIM_QUANTILE" : {},
+    "DIM_QUANTILE": {"First quantile (Q1)": ["Q1"], "_T": ["_T"]},
     "DIM_SDG_INDICATOR": {
         "1.5.4": ["['1.5.4']"],
         "1.5.1": ["['1.5.1']"],
@@ -119,11 +122,19 @@ value_mapper = {
         "Elementary occupations (isco-88)": ["isco88-9"],
         "Not elsewhere classified (isco-88)": ["isco88-X"],
     },
-    # "DIM_REP_TYPE" : {},
+    "DIM_REP_TYPE": {"Global": ["G"], "National": ["N"]},
     "DIM_SECTOR": {
         "NO BREAKDOWN": ["TOTAL"],
         "Agriculture, forestry and fishing": ["ISIC4_A"],
         "Non-agriculture": ["NONAGR"],
         "_T": [""],
+    },
+    "ATTR_UNIT_MEASURE": {
+        "PERCENT": ["PT", "PERCENT"],
+        "HR": ["HR"],
+        "CUR_LCU": ["CUR_LCU"],
+        "NUMBER": ["NUMBER"],
+        "PER_100000_POP": ["PER_100000_POP"],
+        "": [""],
     },
 }
