@@ -10,3 +10,5 @@ html5lib
 rope
 xlrd
 nltk
+matplotlib
+webdriver-manager
