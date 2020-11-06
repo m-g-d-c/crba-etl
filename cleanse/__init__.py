@@ -336,7 +336,7 @@ class Cleanser:
             col for col in grouped_data_iso_filt.columns if col in time_cols
         ]
 
-        # UN Treaty data does not have a column for TIME_PERIOD, add here
+        # UN Treaty and ILO NORMLEX data does not have a column for TIME_PERIOD, add here
         if len(available_time_list) == 0:
             grouped_data_iso_filt[time_period_col] = datetime.datetime.now().year
             available_time_list += [time_period_col]
@@ -573,39 +573,115 @@ class Cleanser:
         )
 
     @classmethod
-    def encode_un_treaty_data(
+    def decompose_country_footnote_ilo_normlex(
         cls,
         dataframe,
-        attr_rat_det_value="ATTR_RATIFICATION_DET",
-        obs_raw_value="RAW_OBS_VALUE",
-        encoding_label_string="Has the country done one of the following things with treaty? Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s). Unless the date indicated is not followed by an encoding, it shows when the treaty was ratified. If it is followed by an encoding sign (e.g. 'a'), the encoding sign indicates its status.",
+        country_name_list,
+        footnote_col="ATTR_FOOTNOTE_OF_SOURCE",
+        country_col="COUNTRY_NAME",
     ):
-        """Encode un treaty data
+        """Extract country and store additional info in footnotes from ILO NORMLEX
+
+        Some ILO NORMLEX data frames contain both country and a footnote in the country column.
+        This functions decomposes this information in two separate columns.
+        The column country_col will then contain the country only (which
+        is required for join operations and later function calls) and the
+        footnote_col will contain footnotes (if present).
+
+        Paramters:
+        dataframe (obj): Dataframe, should be return of rename_and_discard_columns method in Cleanser class
+        country_name_list (list-like): List containing all possible country name variations
+        footnote_col (str): Name of column in final SDMX structure containing source footnotes
+        country_col (str): Name of column containing country name
+
+        Return:
+        DataFrame, with country column content decomposed.
+        """
+        # Define function to extract country name to be applied with .apply
+        def extract_country_name(cell, country_name_list_temp=country_name_list):
+            # Determine which country in the full country list is contained in string
+            subset_list = [x in cell for x in country_name_list_temp]
+
+            # Sometimes several country names match, but we need exactly one
+            if sum(subset_list) == 0:
+                print("No country name match")
+            elif sum(subset_list) == 1:
+                # Retrieve the actual country name
+                country_name = country_name_list[subset_list].item()
+            else:
+                # Retrieve the actual country name
+                country_name = country_name_list[subset_list].iloc[0]
+
+            return country_name
+
+        # Create footnote column that store footnotes
+        dataframe[footnote_col] = dataframe[country_col]
+
+        #  extract country name
+        dataframe[country_col] = dataframe[country_col].apply(extract_country_name)
+
+        # Purge footnotes from the country
+        dataframe[footnote_col] = dataframe.apply(
+            lambda x: re.sub(x[country_col], "", x[footnote_col]), 1
+        )
+
+        return dataframe
+
+    @classmethod
+    def encode_ilo_un_treaty_data(  # TO DO RENAME AND CHANGE IN THE LOOP
+        cls,
+        dataframe,
+        treaty_source_body,
+        attr_rat_date_value="ATTR_RATIFICATION_DATE",
+        attr_treaty_status="ATTR_TREATY_STATUS",
+        obs_raw_value="RAW_OBS_VALUE",
+    ):
+        """Encode un treaty data TO DO: CHANGE DOCUMENTATION
 
         This function is very similar (almost a child class) of the encode_categorical_variables method.
-        It is meant to be applied to all UN Treaty data, which are indicated with "UN Treaties" in the
-        indicator dictionary.
+        It is meant to be applied to both UN Treaty and ILO NORMLEX data, which are indicated with "UN Treaties"  and "ILO NORMLEX" in the
+        indicator dictionary respectively.
 
-        Like the encode_categorical_variables method, it RAW_OBS_VALUE into a numeric variable,
+        Like the encode_categorical_variables method, it creates RAW_OBS_VALUE as a numeric variable,
         so that it can be passed to the scaler function. However, this function does this
-        by looking at the column "ATTR_RATIFICATION_DET", which also maintains.
-
-        This column contains information about the status of a treaty (ratified, succeeded to, ...)
+        by looking at the column "ATTR_RATIFICATION_DATE" and "ATTR_TREATY_STATUS respectively", to determine whether a treaty or convention
+        was ratified (un treaties) or is currently in force (ILO NORMLEX traties).
 
         Parameters:
         dataframe (obj): Pandas dataframe, should be the return of the method 'add_and_discard_countries'
-        attr_rat_det_value (str): Name of column containig the information when a treaty was ratified/ what its status is
+        treaty_source_body(str): Indicate whether its a UN or ILO NORMLEX data with these strings: "UN Treaties" or "ILO NORMLEX"
+        attr_rat_date_value (str): Name of column containig the information when a treaty was ratified (for UN Treaties, it also contains a code indicating status-details of the contract)
+        attr_treaty_status (str): Name of column containig information if a conventions is currently in force
         obs_raw_value (str): Name of the cilumn that is supposed to contain the raw observation value. This will contain the encoded numbers and is created by the function.
-        encoding_label_string (str): The (string) value to be inserted in the column ATTR_ENCODING_LABELS.
 
         Return:
         Pandas DataFrame with RAW_OBS_VALUE added, containing encoded values and a column added containig decoding instructions.
         """
-        # Define condition: Only countries which have signed are listed. The ones not listed will have a NaN value (as a result of the previous join)
-        conditions = [
-            dataframe[attr_rat_det_value].isnull() == False,
-            dataframe[attr_rat_det_value].isnull() == True,
-        ]
+        print("\n Calling function 'add_cols_fill_cells'...")
+
+        # ILO NORMLEX and UN Treaties raw data is different, so require different code blocks
+        if treaty_source_body == "ILO NORMLEX":
+            # Define condition: Only countries which have the treaty in force are considered as a "2"
+            conditions = [
+                dataframe[attr_treaty_status] == "In Force",
+                dataframe[attr_treaty_status] != "In Force",
+            ]
+
+            # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
+            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Is the convention/ treaty in force as of today? "
+        elif treaty_source_body == "UN Treaties":
+            # Define condition: Only countries which have signed are listed. The ones not listed will have a NaN value (as a result of the previous join)
+            conditions = [
+                dataframe[attr_rat_date_value].isnull() == False,
+                dataframe[attr_rat_date_value].isnull() == True,
+            ]
+
+            # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
+            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Has the country done one of the following things with treaty? Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s). Unless the date indicated is not followed by an encoding, it shows when the treaty was ratified. If it is followed by an encoding sign (e.g. 'a'), the encoding sign indicates its status."
+        else:
+            raise Exception(
+                "Please specify the treaty_ource_body. This is required for this function to work. Consult documentation for further information."
+            )
 
         # Define encodings
         encodings = [2, 1]

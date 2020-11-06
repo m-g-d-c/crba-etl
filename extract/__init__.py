@@ -124,5 +124,43 @@ class HTMLExtractor(Extractor):
         raw_data = pd.read_html(io=target_table, header=0)[
             0
         ]  # return is a list of DFs, specify [0] to get actual DF
+
+        # Return result
+        return raw_data
+
+
+class SeleniumExtractor(Extractor):
+
+    type = "html-selenium"
+
+    @classmethod
+    def data(cls, url):
+        # Specify location to chrome driver
+        # TO DO
+
+        # Add option to make it headless (so that it doesn't open an actual chrome window)
+        options = Options()
+        options.headless = True
+        driver = webdriver.Chrome(driver_location, chrome_options=options)
+
+        # Get HTTP response
+        response = driver.get(urlstrip())
+
+        # Retrieve the actual html
+        html = driver.page_source
+
+        # Soupify
+        soup = bs.BeautifulSoup(html)
+
+        # Extract the target table as attribute
+        target_table = str(
+            soup.find_all("table", {"cellspacing": "0", "class": "horizontalLine"})
+        )
+
+        # Create dataframe with the data
+        raw_data = pd.read_html(io=target_table, header=0)[
+            0
+        ]  # return is a list of DFs, specify [0] to get actual DF
+
         # Return result
         return raw_data

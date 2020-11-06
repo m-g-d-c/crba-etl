@@ -83,6 +83,7 @@ country_tuple = (
     "Participant",
     "Participant 2, 3, 4",
     "Participant 2",
+    "Country",
 )
 country_mapper = {key: "COUNTRY_NAME" for key in country_tuple}
 
@@ -173,7 +174,7 @@ dim_sector_mapper = {key: "DIM_SECTOR" for key in dim_sector_tuple}
 # # # # # # # # # # # # #
 
 # Source note
-source_note_tuple = ("SOURCE_NOTE", "ATTR_SOURCE_NOTE", "OBS_FOOTNOTE")
+source_note_tuple = ("SOURCE_NOTE", "ATTR_SOURCE_NOTE", "OBS_FOOTNOTE", "Note")
 source_mapper = {key: "ATTR_NOTE_OF_SOURCE" for key in source_note_tuple}
 
 # Indicator note from source
@@ -237,10 +238,16 @@ un_treaty_rat_details_tup = (
     "Ratification, Acceptance(A), Accession(a), Succession(d)",
     "Definitive signature(s), Ratification, Acceptance(A), Approval(AA), Accession(a)",
     "Accession(a), Ratification",
+    "Date",
 )
 un_treaty_rat_details_mapper = {
-    key: "ATTR_RATIFICATION_DET" for key in un_treaty_rat_details_tup
+    key: "ATTR_RATIFICATION_DATE" for key in un_treaty_rat_details_tup
 }
+
+
+# ILO Normlex treaty status
+ilo_treaty_status_tup = ("Status",)
+ilo_treaty_status_mapper = {key: "ATTR_TREATY_STATUS" for key in ilo_treaty_status_tup}
 
 
 # Create list of all mapper dictionaries
@@ -274,6 +281,7 @@ mapper_tuple_list = [
     footnotes_of_source_mapper,
     obs_type_mapper,
     un_treaty_rat_details_mapper,
+    ilo_treaty_status_mapper,
 ]
 
 # Define the mapping dictionary
@@ -324,6 +332,7 @@ sdmx_df_columns_attr = [
     "ATTR_FOOTNOTE_OF_SOURCE",
     "ATTR_SOURCE_OBS_TYPE",
     "ATTR_RATIFICATION_DET",
+    "ATTR_TREATY_STATUS",
 ]
 
 # All columns list
