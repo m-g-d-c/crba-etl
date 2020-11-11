@@ -461,32 +461,47 @@ class Cleanser:
         cls,
         dataframe,
         encoding_string,
-        obs_raw_value="RAW_OBS_VALUE",
+        encoding_labels=False,
+        na_encodings="0",
+        obs_raw_value_source="RAW_OBS_VALUE",
+        obs_raw_value_target="RAW_OBS_VALUE",
         sep_character=";",
         assign_character="=",
     ):
-        """Encode categorical raw data values into ordinal variables
+        """Encode variables
 
-        The scaler funtion assigns scores, but requires numeric, raw data.
+        This function encodes variables, i.e. you can pass it a string containing a certain
+        encoding (e.g. 'Yes=1; No=2'), and it will encode the variables accordingly.
 
-        This function encodes the string values of categorical raw data (e.g. "Yes", "ratified", or "Older than 18 years")
-        into a system of ordinal variables encoded in numbers. Depending on the number of values in
-        the categorical raw data, the encoded system can be anywhere between "1-2" and
-        "0-1-2-3-4-5-6-7"
+        By default, the values are overwritten (i.e. obs_raw_value_source and obs_raw_value_target)
+        are the same columns. However, encoded values can also be stored somewhere else.
 
-        The raw observation values will be overwritten with enodede system, but a new column is added
-        to the dataframe which contains an explanation of the encodings.
+        The function is used for two cases:
 
-        The encoding must be passed as string to the ecnoding_string parameter. The encoded value and original
+        * Encode data to make it fit for normalizer function: The normalizer function requires numeric
+        data. So strings must be encoded as numbers.
+        * Pre-encode raw data: Some raw data is already encoded in numbers (which represent strings).
+        In that case they undergo a pre-encoding have the raw data contain the actual strings (i.e.
+        "no minimum age", rather than "2" so as to make it more self-explantory and user friendly.)
+
+        The encoding must be passed as string to the encoding_string parameter. The encoded value and original
         value must be connected with the assign character. Encoded-value/original-value pairs must be separater
         by sep_character.
+
+        By default, empty values (NaNs) and empty strings are encoded into '0's.
+
+        Values which appear in obs_raw_value_source but do not have a mapping value are
+        encoded as "VALUE WITHOUT MAPPING - PLEASE MAP".
+
 
         Parameters:
         dataframe (obj): Raw dataframe containing categorical raw data
         encoding_string (str): String containing the Encoded-value/original-value pairs
-        obs_raw_value (str): Column name of column containing raw data
+        obs_raw_value_source (str): Column name of column containing raw data
+        obs_raw_value_target (str): Column name of column where encoded data is written to. By default identical to obs_raw_value_source
         sep_character (str): Character by which Encoded-value/original-value pairs are separated
         assign_character (str): Character assigning Encoded-value and original-values
+        create_attr_enc (bool): Should a column be created that contains the encoding string?
 
         Return:
         Dataframe with encoded categorical, raw data and an added column ATTR_ENCODING_LABELS containing encoding labels
@@ -511,7 +526,7 @@ class Cleanser:
             # Extract raw values and encodings from mapping pairs listed
             for mapping_sublist in range(len(mapping_pairs_listed)):
                 raw_values += [
-                    dataframe[obs_raw_value].astype(
+                    dataframe[obs_raw_value_source].astype(
                         str
                     )  # convert to string in case raw value is numeric
                     == mapping_pairs_listed[mapping_sublist][1].rstrip().lstrip()
@@ -521,19 +536,21 @@ class Cleanser:
                 ]
 
             # Encode NaN values
-            raw_values += [dataframe[obs_raw_value].isnull()]
-            raw_values += [dataframe[obs_raw_value] == ""]
+            raw_values += [dataframe[obs_raw_value_source].isnull()]
+            raw_values += [dataframe[obs_raw_value_source] == ""]
 
-            encodings += ["0", "0"]
+            # Target value of NaN values
+            encodings += [na_encodings, na_encodings]
 
-            dataframe[obs_raw_value] = np.select(
+            dataframe[obs_raw_value_target] = np.select(
                 condlist=raw_values,
                 choicelist=encodings,
                 default="VALUE WITHOUT MAPPING - PLEASE MAP",
             )
 
-            # create attr_encoding_raw_values
-            dataframe["ATTR_ENCODING_LABELS"] = encoding_string
+            if encoding_labels != False:
+                # create attr_encoding_raw_values
+                dataframe["ATTR_ENCODING_LABELS"] = encoding_labels
 
         else:
             pass
@@ -668,7 +685,7 @@ class Cleanser:
             ]
 
             # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
-            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Is the convention/ treaty in force as of today? "
+            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Is the convention/ treaty in force as of today?"
         elif treaty_source_body == "UN Treaties":
             # Define condition: Only countries which have signed are listed. The ones not listed will have a NaN value (as a result of the previous join)
             conditions = [
@@ -677,7 +694,7 @@ class Cleanser:
             ]
 
             # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
-            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Has the country done one of the following things with treaty? Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s). Unless the date indicated is not followed by an encoding, it shows when the treaty was ratified. If it is followed by an encoding sign (e.g. 'a'), the encoding sign indicates its status."
+            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Has the country done one of the following things with the treaty: Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s)? Unless the date indicated is not followed by an encoding, it shows when the treaty was ratified. If it is followed by an encoding sign (e.g. 'a'), the encoding sign indicates its status."
         else:
             raise Exception(
                 "Please specify the treaty_ource_body. This is required for this function to work. Consult documentation for further information."

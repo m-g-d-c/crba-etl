@@ -92,7 +92,7 @@ iso_2_tuple = ("REF_AREA", "COUNTRY_ISO_2")
 iso_2_mapper = {key: "COUNTRY_ISO_2" for key in iso_2_tuple}
 
 # Iso 3
-iso_3_tuple = ("REF_AREA", "COUNTRY", "COUNTRY_ISO_3")
+iso_3_tuple = ("REF_AREA", "COUNTRY", "COUNTRY_ISO_3", "iso3")
 iso_3_mapper = {key: "COUNTRY_ISO_3" for key in iso_3_tuple}
 
 # # # # # # # # # # # # #
@@ -113,6 +113,24 @@ obs_value_tuple = (
     "Display Value",
     "value",
     "RAW_OBS_VALUE",
+    "admiss_age",
+    "light_age",
+    "edu_comp_begsec",
+    "cl_haz_minage",
+    "minwage_leg",
+    "paid_anlv",
+    "sickleave_duration",
+    "promdemo_sex",
+    "pay_sex",
+    "sh_covered",
+    "fb_ccschsupp",
+    "minwage_ppp",
+    "mtlv_job_protect",
+    "ptlv_job_protect",
+    "maternal_leave",
+    "maternal_min_wrr_ilo",
+    "paternal_leave",
+    "breastfeed_duration",
 )
 obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 
@@ -168,6 +186,9 @@ dim_reporting_type_mapper = {key: "DIM_REP_TYPE" for key in dim_reporting_type_t
 dim_sector_tuple = ("dimensions.Activity", "DIM_SECTOR")
 dim_sector_mapper = {key: "DIM_SECTOR" for key in dim_sector_tuple}
 
+# Alcohol type
+alc_type_tuple = ("ALCOHOLTYPE",)
+alc_type_mapper = {key: "DIM_ALCOHOL_TYPE" for key in alc_type_tuple}
 
 # # # # # # # # # # # # #
 # # # # Attributes # # # #
@@ -249,7 +270,6 @@ un_treaty_rat_details_mapper = {
 ilo_treaty_status_tup = ("Status",)
 ilo_treaty_status_mapper = {key: "ATTR_TREATY_STATUS" for key in ilo_treaty_status_tup}
 
-
 # Create list of all mapper dictionaries
 mapper_tuple_list = [
     country_mapper,
@@ -316,6 +336,7 @@ sdmx_df_columns_dims = [
     "DIM_OCU_TYPE",
     "DIM_REP_TYPE",
     "DIM_SECTOR",
+    "DIM_ALCOHOL_TYPE",
 ]
 
 
