@@ -80,6 +80,7 @@ country_tuple = (
     "geoAreaName",
     "COUNTRY_NAME",
     "Geographic Area",
+    "Geographic area",
     "Participant",
     "Participant 2, 3, 4",
     "Participant 2",
@@ -247,6 +248,7 @@ obs_type_mapper = {key: "ATTR_SOURCE_OBS_TYPE" for key in obs_type_tuple}
 # UN Treaty ratification years and details
 un_treaty_rat_details_tup = (
     "Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d)",
+    "Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d)",
     "Ratification, Accession(a), Succession(d)",
     "Definitive signature(s), Acceptance(A)",
     "Ratification, Acceptance(A), Approval(AA), Formal confirmation(c), Accession(a), Succession(d)",
@@ -302,6 +304,7 @@ mapper_tuple_list = [
     obs_type_mapper,
     un_treaty_rat_details_mapper,
     ilo_treaty_status_mapper,
+    alc_type_mapper,
 ]
 
 # Define the mapping dictionary
@@ -352,7 +355,7 @@ sdmx_df_columns_attr = [
     "ATTR_SOURCE_OF_SOURCE",
     "ATTR_FOOTNOTE_OF_SOURCE",
     "ATTR_SOURCE_OBS_TYPE",
-    "ATTR_RATIFICATION_DET",
+    "ATTR_RATIFICATION_DATE",
     "ATTR_TREATY_STATUS",
 ]
 

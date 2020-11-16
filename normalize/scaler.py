@@ -51,22 +51,31 @@ def normalizer(
     DataFrame with a new column called scaled_data_col_name containing the normalized (scaled) data
     """
     if variable_type != "Continuous variable":
+        # This is unusual, but some categorical variables also have dimensions
+        if sql_subset_query_string:
+            cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
+        else:
+            cleansed_data_subset = cleansed_data
+
         # Build conditions array
-        unique_values = cleansed_data[raw_data_col].unique()
+        unique_values = cleansed_data_subset[raw_data_col].unique()
 
         conditions = []
         for value in sorted(unique_values):
-            conditions += [cleansed_data[raw_data_col] == value]
+            conditions += [cleansed_data_subset[raw_data_col] == value]
 
         # Assign variable for readability purpose
-        length_unique_values = len(cleansed_data[raw_data_col].unique())
+        length_unique_values = len(cleansed_data_subset[raw_data_col].unique())
 
         # Build norm values array, where 0 =< norm_values => 10
         norm_values = []
         divisor = 1
 
+        # In the encoding, the value 0 means "No Data/ no reponse/ not answered/ ..."
         if (0 in unique_values) | ("0" in unique_values):
-            norm_values += ["No data"]
+            norm_values += [
+                np.nan
+            ]  # This is into what "0" is encoded into OBS_SCALED_VALUE
             length_unique_values -= 1
 
         # Define the normalization type, e.g. 0-5-10, or 0 - 3.3 - 6.6 - 10
@@ -76,7 +85,10 @@ def normalizer(
             norm_values += [round(distance * float(value), 2)]
 
         # store normalized scores in SCALED_OBS_VALUE
-        cleansed_data[scaled_data_col_name] = np.select(conditions, norm_values)
+        cleansed_data_subset[scaled_data_col_name] = np.select(conditions, norm_values)
+
+        # join normalized data to original dataframe
+        cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
 
     elif variable_type == "Continuous variable":
         """
@@ -182,6 +194,13 @@ def normalizer(
     result = cleansed_data.assign(
         OBS_STATUS=np.where(cleansed_data[raw_data_col].isnull(), "O", np.nan)
     )
+
+    # For categorical variables, the value 0 also means No data, so update OBS_STATUS
+    if variable_type != "Continuous variable":
+        result.loc[
+            (result["RAW_OBS_VALUE"] == "0") | (result["RAW_OBS_VALUE"] == 0),
+            "OBS_STATUS",
+        ] = "O"
 
     # Return result
     return result

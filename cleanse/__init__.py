@@ -93,7 +93,83 @@ class Cleanser:
         except:
             pass
 
+        # Source S-50 and S-53 both have colname "OCU" in their raw data, but contain differnt data types
+        # Make sure the column name is mapped correctly
+        try:
+            if "OCU_ISCO08_TOTAL" in raw_data["DIM_MANAGEMENT_LEVEL"].unique():
+                print(
+                    "The column OCU has been renamed into DIM_MANAGEMENT_LEVEL, but should be DIM_OCU_TYPE. Now renaming it into DIM_OCU_TYPE"
+                )
+                raw_data = raw_data.rename(
+                    columns={"DIM_MANAGEMENT_LEVEL": "DIM_OCU_TYPE"}
+                )
+        except:
+            pass
+
         return raw_data
+
+    @classmethod
+    def extract_year_from_timeperiod(
+        cls, dataframe, year_col="TIME_PERIOD", time_cov_col="COVERAGE_TIME"
+    ):
+        """Extract year from time-period variable
+
+        If the time column (TIME_PERIOD) contains time periods rather than single,
+        atomic year values, this function extracts the mean year of the indicated
+        time period. It overwrites year_col with the extracted year value and
+        stores the original values in a new col time_cov_col.
+
+        E.g. if year_col contains "2012 - 2014", it will contain "2013" afterwards.
+
+        Parameters:
+        dataframe (obj): Dataframe to be used
+        year_col (str): Column in dataframe, which contains timeperiod data
+        time_cov_col (str): Column name where original value of year_col is stored if it is converted
+
+        Return: Pandas Dataframe with year_col as integer values
+        """
+        # Log info for user
+        print("\n Calling function 'extract_year_from_timeperiod'...")
+
+        # Determine if the time period variable is normal, or of type e.g. "2012 - 2014"
+        is_time_period = re.search("-", str(dataframe[year_col].unique()))
+
+        # If it is, extract the actual year
+        if is_time_period:
+
+            # Store original column in new column
+            dataframe[time_cov_col] = dataframe[year_col]
+
+            # Define temp function (for readability rather than using lambda)
+            def year_extractor_temp(period_string):
+                """From string 'startyear - endyear' extract average year
+                e.g. '2014 - 2016' -->  will return 2015
+                """
+                result = int(
+                    (
+                        int(re.findall("^\d+", period_string)[0])
+                        + int(re.findall("\d+$", period_string)[0])
+                    )
+                    / 2
+                )  # Return as integer, note that return of .findall is a list
+
+                return result
+
+            # Apply function to column values and overwrite column values
+            dataframe[year_col] = dataframe[year_col].apply(
+                lambda x: year_extractor_temp(x)
+            )
+
+            # Log info for user
+            print(
+                "\n TIME_PERIOD column contained time periods (no atomic years). Successfully extrated year. "
+            )
+
+        else:
+            # If time period is just containing normal year values, do nothing
+            pass
+
+        return dataframe
 
     @classmethod
     def retrieve_latest_observation(
@@ -219,7 +295,7 @@ class Cleanser:
         elif (med_country_col_len > 1.5) & (med_country_col_len < 3.5):
             # Column in raw dataframe is ISO2 or ISO3, so can just join directly
             grouped_data_iso_filt = grouped_data.merge(
-                right=crba_country_list[country_col_right_join],
+                right=crba_country_list,  # [country_col_right_join],
                 how="right",
                 on=country_col_right_join,
                 indicator=True,
@@ -441,8 +517,18 @@ class Cleanser:
                     # Define the target value if original_values evaluates to true
                     mapped_values += len(value_mapping_dict[key][sub_key]) * [sub_key]
 
+                # Encode NaN values
+                original_values += [cleansed_data[key].isnull()]
+                original_values += [cleansed_data[key] == ""]
+                original_values += [cleansed_data[key] == "_T"]
+
+                # Target value of NaN values
+                mapped_values += [np.nan, np.nan, "_T"]
+
                 # Convert (map) the values
-                cleansed_data[key] = np.select(original_values, mapped_values)
+                cleansed_data[key] = np.select(
+                    original_values, mapped_values, "UNMAPPED VALUE - PLEASE MAP"
+                )
 
                 # log info for user
                 print("\n Successfully mapped values of column: {}".format(key))
@@ -674,7 +760,7 @@ class Cleanser:
         Return:
         Pandas DataFrame with RAW_OBS_VALUE added, containing encoded values and a column added containig decoding instructions.
         """
-        print("\n Calling function 'add_cols_fill_cells'...")
+        print("\n Calling function 'encode_ilo_un_treaty_data'...")
 
         # ILO NORMLEX and UN Treaties raw data is different, so require different code blocks
         if treaty_source_body == "ILO NORMLEX":

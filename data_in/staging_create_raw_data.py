@@ -77,6 +77,7 @@ un_pop_tot = un_pop_tot.merge(
     right_on="COUNTRY_NAME",
 )
 
+# - - - - - - - - - - - -
 # Join raw data and population data together
 s_180_s_181_raw = un_pop_tot.merge(
     right=S_180_S_181,
@@ -90,8 +91,8 @@ s_180_s_181_raw = un_pop_tot.merge(
 s_180_raw = s_180_s_181_raw
 
 # Calculate target KPI (number of Internally displaced people per 100.000 people)
-s_180_raw["RAW_OBS_VALUE"] = (
-    s_180_raw["Conflict Stock Displacement"] / (s_180_raw["population"]) * 100
+s_180_raw["RAW_OBS_VALUE"] = s_180_raw["Conflict Stock Displacement"] / (
+    s_180_raw["population"] * 100
 )
 
 # Add unit measure
@@ -100,7 +101,7 @@ s_180_raw[
 ] = "Total number of IDPs (conflict and violence) per 100.000 people. Calculated as 'Total Number of IDPs (Conflict and violence)' taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
 
 # Store data
-s_180_raw.to_csv(data_sources_raw / "S-180_raw.csv", sep=";")
+s_180_raw.to_csv(data_sources_staged_raw / "S-180_staged_raw.csv", sep=";")
 
 # Create S_180
 s_181_raw = s_180_s_181_raw
@@ -116,4 +117,67 @@ s_181_raw[
 ] = "Number of new IDPs (conflict and violence) per 100.000 people for a given year. Calculated as 'Number of new IDPs (Conflict and violence)' in a given year taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
 
 # Store data
-s_181_raw.to_csv(data_sources_raw / "S-181_raw.csv", sep=";")
+s_181_raw.to_csv(data_sources_staged_raw / "S-181_staged_raw.csv", sep=";")
+
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-185, S-186, S-187, S-188 # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+
+# Create list to loop through
+source_list = [
+    [
+        "https://unstats.un.org/SDGAPI/v1/sdg/Series/Data?seriesCode=VC_DSR_PDLN&pageSize=999999999",
+        "S-185_staged_raw.csv",
+        "Derived from SDG Indicator 1.5.1: Indicator 1.5.1, 11.5.1, 13.1.1, Series:  Number of people whose livelihoods were disrupted or destroyed, attributed to disasters. Instead of total, absolute number, this indicator indicates number per 100.000 population",
+    ],
+    [
+        "https://unstats.un.org/SDGAPI/v1/sdg/Series/Data?seriesCode=VC_DSR_ESDN&pageSize=999999999",
+        "S-186_staged_raw.csv",
+        "Derived from SDG Indicator 11.5.2 (code VC_DSR_ESDN) Number of disruptions to educational services attributed to disasters. Instead of total, absolute number, this indicator indicates number per 100.000 population",
+    ],
+    [
+        "https://unstats.un.org/SDGAPI/v1/sdg/Series/Data?seriesCode=VC_DSR_HSDN&pageSize=999999999",
+        "S-187_staged_raw.csv",
+        "Derived from SDG Indicator 11.5.2 (code VC_DSR_HSDN): Number of disruptions to health services attributed to disasters. Instead of total, absolute number, this indicator indicates number per 100.000 population",
+    ],
+    [
+        "https://unstats.un.org/SDGAPI/v1/sdg/Series/Data?seriesCode=VC_DSR_OBDN&pageSize=999999999",
+        "S-188_staged_raw.csv",
+        "Derived from SDG Indicator 11.5.2 (code VC_DSR_OBDN): Number of disruptions to other basic services attributed to disasters. Instead of total, absolute number, this indicator indicates number per 100.000 population",
+    ],
+]
+
+# Loop through all 4 sources
+for element in source_list:
+    dataframe = extract.JSONExtractor.extract(url=element[0])
+
+    # Obtain the ISO2 and ISO3 codes
+    dataframe = dataframe.merge(
+        right=country_full_list,
+        how="left",
+        left_on="geoAreaName",
+        right_on="COUNTRY_NAME",
+    )
+
+    # Cast year column as string for join
+    dataframe.timePeriodStart = dataframe.timePeriodStart.astype(int).astype(str)
+
+    # Join UN Population data to to obtain population size
+    dataframe = un_pop_tot.merge(
+        right=dataframe,
+        how="outer",
+        # on="ISO3_YEAR"
+        left_on=["COUNTRY_ISO_3", "year"],
+        right_on=["COUNTRY_ISO_3", "timePeriodStart"],
+    )
+
+    # Calculate target KPI (number of Internally displaced people per 100.000 people)
+    dataframe["RAW_OBS_VALUE"] = dataframe["value"].astype(float) / (
+        dataframe["population"] * 100
+    )
+
+    # Add unit measure
+    dataframe["ATTR_UNIT_MEASURE"] = element[2]
+
+    # Store data
+    dataframe.to_csv(data_sources_staged_raw / element[1], sep=";")
