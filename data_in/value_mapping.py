@@ -39,7 +39,7 @@ This is a list of the columns in the final SDMX dataframe:
 
 value_mapper = {
     "DIM_SEX": {
-        "BOTH_SEXES": ["_T", "BOTHSEX", "BTSX", "SEX_T", "Total"],
+        "BOTH_SEXES": ["_T", "BOTHSEX", "BTSX", "SEX_T", "Total", "TOTAL: Total"],
         "MALE": ["M", "MALE", "MLE", "SEX_M", "Male"],
         "FEMALE": ["F", "FEMALE", "FMLE", "SEX_F", "Female"],
     },
@@ -47,6 +47,7 @@ value_mapper = {
         "LOWER SECONDARY EDUCATION": ["L2"],
         "UPPER SECONDARY EDUCATION": ["L3"],
         "PRE-PRIMARY EDUCATION": ["L02"],
+        "PRIMARY EDUCATION": ["L1"],
         "_T": [""],
     },
     "DIM_AGE": {
@@ -72,6 +73,14 @@ value_mapper = {
         "13-15 YEARS": ["13 to 15 years old"],
         "13-17 YEARS": ["13 to 17 years old"],
         "15 YEARS": ["15 years old"],
+        "0-5 YEARS": ["UFIVE: Under five"],
+        "POST-NEONATAL": ["POST: Post-neonatal"],
+        "NEO-NATAL": ["NEO: Neo-natal"],
+        "<1 YEAR": ["<1Y"],
+        "<5 YEARS": ["<5Y"],
+        "<6 YEARS": ["<6Y"],
+        "<8 YEARS": ["<8Y"],
+        "5-59 MONTHS": ["M6T59"],
     },
     "DIM_MANAGEMENT_LEVEL": {
         "OCU_MGMT_SENIOR": ["OCU_MGMT_SENIOR"],
@@ -86,13 +95,29 @@ value_mapper = {
     },
     "DIM_QUANTILE": {"First quantile (Q1)": ["Q1"], "_T": ["_T"]},
     "DIM_SDG_INDICATOR": {
+        "1.1.1": ["['1.1.1']"],
+        "1.a.2": ["['1.a.2']"],
+        "1.3.1": ["['1.3.1']"],
         "1.5.4": ["['1.5.4']"],
         "1.5.1": ["['1.5.1']"],
+        "2.1.2": ["['2.1.2']"],
+        "3.9.2": ["['3.9.2']"],
+        "8.3.1": ["['8.3.1']"],
+        "8.5.1": ["['8.5.1']"],
+        "8.7.1": ["['8.7.1']"],
         "11.5.2": ["['11.5.2']"],
         "11.b.2": ["['11.b.2']"],
-        "13.1.3": ["['13.1.3']"],
         "11.5.1": ["['11.5.1']"],
+        "12.4.1": ["['12.4.1']"],
+        "12.4.2": ["['12.4.2']"],
+        "12.5.1": ["['12.5.1']"],
+        "12.1.1": ["['12.1.1']"],
         "13.1.1": ["['13.1.1']"],
+        "13.1.2": ["['13.1.2']"],
+        "13.1.3": ["['13.1.3']"],
+        "15.3.1": ["['15.3.1']"],
+        "16.2.3": ["['16.2.3']"],
+        "16.9.1": ["['16.9.1']"],
     },
     # A lot of the values come from source S-203, follow this link to obtain
     # raw data encodings: https://unstats.un.org/SDGAPI/v1/sdg/Series/SL_EMP_AEARN/Dimensions
@@ -137,6 +162,8 @@ value_mapper = {
         "Agriculture, forestry and fishing": ["ISIC4_A"],
         "Non-agriculture": ["NONAGR"],
         "_T": [""],
+        "Oil and gas": ["Oil and gas"],
+        "Mining": ["Mining"],
     },
     "ATTR_UNIT_MEASURE": {
         "PERCENT": ["PT", "PERCENT"],
@@ -145,5 +172,21 @@ value_mapper = {
         "NUMBER": ["NUMBER"],
         "PER_100000_POP": ["PER_100000_POP"],
         "": [""],
+        "KG": ["KG"],
+    },
+    "DIM_POLICY_TYPE": {
+        "_T": ["_T"],
+        "Macro policies (e.g. national strategies/action plans, new institutions/entities)": [
+            "POLICY_MACRO"
+        ],
+        "Economic and fiscal instruments (taxes and tax incentives, grants, preferential loans, etc.)": [
+            "POLICY_ECONFIS"
+        ],
+        "Regulatory and legal instruments (e.g. laws, standards, enforcement measures)": [
+            "POLICY_REGLEG"
+        ],
+        "Voluntary and self-regulation schemes (e.g. sectoral partnerships, codes of conduct, CSR initiatives)": [
+            "POLICY_VOLSRG"
+        ],
     },
 }

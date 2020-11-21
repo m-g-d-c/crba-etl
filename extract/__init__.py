@@ -83,7 +83,14 @@ class JSONExtractor(Extractor):
     @classmethod
     def data(cls, url):
         # Extract data and convert to pandas dataframe
-        raw_data = pd.json_normalize(requests.get(url).json()["data"])
+        try:
+            # Most json data is from SDG; which deturn json with key "data" having the data as value
+            raw_data = pd.json_normalize(requests.get(url).json()["data"])
+        except:
+            # However, some of the data is also from World Bank where the command returns list, which must be subset with list index
+            raw_data = pd.json_normalize(
+                requests.get(url).json()[1]
+            )  # 0 is metadata, 1 contains actual data)
 
         return raw_data
 

@@ -106,6 +106,20 @@ class Cleanser:
         except:
             pass
 
+        # One UNICEF source S-221 has a different data structure, which requires extracting the ISO3 code
+        try:
+            if "CAF: Central African Republic" in raw_data["COUNTRY_ISO_3"].unique():
+                print(
+                    "The column COUNTRY_ISO_3 is of a different data structure. This should be the case only for S-221. Now extracting the actual ISO3 code from the column"
+                )
+                raw_data["COUNTRY_ISO_3"] = raw_data["COUNTRY_ISO_3"].apply(
+                    lambda x: re.findall("^\w+", x)[0]
+                )
+            else:
+                pass
+        except:
+            pass
+
         return raw_data
 
     @classmethod
@@ -132,11 +146,13 @@ class Cleanser:
         print("\n Calling function 'extract_year_from_timeperiod'...")
 
         # Determine if the time period variable is normal, or of type e.g. "2012 - 2014"
-        is_time_period = re.search("-", str(dataframe[year_col].unique()))
+        is_time_period_dash = re.search("-", str(dataframe[year_col].unique()))
+
+        # Determine if data is from Natural resource obernance institute
+        is_time_period_rgi = re.search("RGI", str(dataframe[year_col].unique()))
 
         # If it is, extract the actual year
-        if is_time_period:
-
+        if is_time_period_dash:
             # Store original column in new column
             dataframe[time_cov_col] = dataframe[year_col]
 
@@ -164,7 +180,9 @@ class Cleanser:
             print(
                 "\n TIME_PERIOD column contained time periods (no atomic years). Successfully extrated year. "
             )
-
+        elif is_time_period_rgi:
+            # The data of natural resource goenance institute is from year 2017
+            dataframe[year_col] = 2017
         else:
             # If time period is just containing normal year values, do nothing
             pass
@@ -295,14 +313,20 @@ class Cleanser:
         elif (med_country_col_len > 1.5) & (med_country_col_len < 3.5):
             # Column in raw dataframe is ISO2 or ISO3, so can just join directly
             grouped_data_iso_filt = grouped_data.merge(
-                right=crba_country_list,  # [country_col_right_join],
+                right=crba_country_list[[country_col_right_join]],
                 how="right",
                 on=country_col_right_join,
                 indicator=True,
                 validate="many_to_one",
+                suffixes=("_source_data", None),
             )
         elif med_country_col_len > 3.5:
             # The raw data only contains country names. Assign ISO codes to these country names.
+            # Source S-155 and S-156 Contain leading whitespaces. Delete those, or else join will fail
+            grouped_data["COUNTRY_NAME"] = (
+                grouped_data["COUNTRY_NAME"].astype(str).apply(lambda x: x.strip())
+            )
+
             # Use country full list to make sure each country name variation is captured
             grouped_data_iso = grouped_data.merge(
                 right=country_list_full,
@@ -311,9 +335,11 @@ class Cleanser:
                 validate="many_to_one",
             )
 
+            print(grouped_data_iso)
+
             # Discard countries that aren't part of the final CRBA master list
             grouped_data_iso_filt = grouped_data_iso.merge(
-                right=crba_country_list["COUNTRY_ISO_3"],
+                right=crba_country_list[["COUNTRY_ISO_3"]],
                 how="right",
                 on="COUNTRY_ISO_3",
                 indicator=True,
@@ -667,6 +693,7 @@ class Cleanser:
         except:
             pass
 
+        # Create summary statistics for the year column
         summary_year = cleansed_data[year_col].describe()
 
         print(
@@ -674,6 +701,21 @@ class Cleanser:
                 summary_year
             )
         )
+
+        # Check if there are duplicate rows. Except for source S-166, this shouldn't be the case
+        if cleansed_data.duplicated().any() == True:
+            print(
+                "WARNING: There are {} duplicate rows in the cleansed dataframe. Apart from soure S-166, this should not be the case. Check if you have mapped all columns (specifically the dimensions) and values. Now dropping duplicate rows and returning dataframe without duplicates.".format(
+                    sum(cleansed_data.duplicated())
+                )
+            )
+
+            # Drop duplicates
+            cleansed_data = cleansed_data.drop_duplicates(
+                subset=["COUNTRY_ISO_3", "TIME_PERIOD"]
+            )
+
+        return cleansed_data
 
     @classmethod
     def decompose_country_footnote_ilo_normlex(
@@ -781,6 +823,15 @@ class Cleanser:
 
             # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
             encoding_label_string = "2=Yes, 1=No; as answer to the following question: Has the country done one of the following things with the treaty: Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s)? Unless the date indicated is not followed by an encoding, it shows when the treaty was ratified. If it is followed by an encoding sign (e.g. 'a'), the encoding sign indicates its status."
+        elif treaty_source_body == "ICRC":
+            # Define condition: Only countries which have signed are listed. The ones not listed will have a NaN value (as a result of the previous join)
+            conditions = [
+                dataframe[attr_rat_date_value].isnull() == False,
+                dataframe[attr_rat_date_value].isnull() == True,
+            ]
+
+            # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
+            encoding_label_string = "2=Yes, 1=No; Has the country ratified/ signed the convention/ protocol?"
         else:
             raise Exception(
                 "Please specify the treaty_ource_body. This is required for this function to work. Consult documentation for further information."

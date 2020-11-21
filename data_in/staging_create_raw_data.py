@@ -21,34 +21,17 @@ comparable across countries
     > click on "Total Population - Both Sexes" or directly follow this link
     https://population.un.org/wpp/Download/Files/1_Indicators%20(Standard)/EXCEL_FILES/1_Population/WPP2019_POP_F01_1_TOTAL_POPULATION_BOTH_SEXES.xlsx
 * S-181: equivalent to S-180
+* S-11, S-120, S-124, S-134
 """
-# # # # # S-157
-
-
-# # # # # S-180 and S-181
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+# # # # # # # Prepare UN population data # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
 # Read data
 un_pop_tot = pd.read_excel(
     io=data_in / "WPP2019_POP_F01_1_TOTAL_POPULATION_BOTH_SEXES.xlsx",
     sheet_name="ESTIMATES",
     header=16,
 )
-
-# Load the list of countries which contains all different variations of country names
-country_full_list = pd.read_excel(
-    data_in / "all_countrynames_list.xlsx", keep_default_na=False
-).drop_duplicates()
-
-# Load raw data of S-180 and S-181
-S_180_S_181 = pd.read_excel(
-    data_in
-    / "data_raw_manually_extracted"
-    / "S-180, S-181, S-189 idmc_displacement_all_dataset.xlsx"
-).drop(
-    0
-)  # delete first row containing strings
-
-# Cast year as string, required for merge command later
-S_180_S_181["Year"] = S_180_S_181["Year"].astype(str)
 
 # Define list of columns corresponding to year name columns
 years = [str(x) for x in list(range(1950, 2021))]
@@ -69,6 +52,11 @@ un_pop_tot = un_pop_tot.melt(
     value_name="population",
 )
 
+# Load the list of countries which contains all different variations of country names
+country_full_list = pd.read_excel(
+    data_in / "all_countrynames_list.xlsx", keep_default_na=False
+).drop_duplicates()
+
 # Add ISO3 code to the list to prepare for join
 un_pop_tot = un_pop_tot.merge(
     right=country_full_list,
@@ -77,47 +65,65 @@ un_pop_tot = un_pop_tot.merge(
     right_on="COUNTRY_NAME",
 )
 
-# - - - - - - - - - - - -
+# Discard unnecessary columns
+un_pop_tot = un_pop_tot[["year", "population", "COUNTRY_ISO_3"]]
+
+
+# # # # # # # # # IDMC Data  # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-180, S-181, S-189, S-230 # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # #
+
+# Load raw data of S-180 and S-181
+S_180_S_181_S189_S_230 = pd.read_excel(
+    data_in
+    / "data_raw_manually_extracted"
+    / "S-180, S-181, S-189 S-230 idmc_displacement_all_dataset.xlsx"
+).drop(
+    0
+)  # delete first row containing strings
+
+# Cast year as string, required for merge command later
+S_180_S_181_S189_S_230["Year"] = S_180_S_181_S189_S_230["Year"].astype(str)
+
 # Join raw data and population data together
-s_180_s_181_raw = un_pop_tot.merge(
-    right=S_180_S_181,
-    how="outer",
+S_180_S_181_S189_S_230_raw = un_pop_tot.merge(
+    right=S_180_S_181_S189_S_230,
+    how="right",
     # on="ISO3_YEAR"
     left_on=["COUNTRY_ISO_3", "year"],
     right_on=["ISO3", "Year"],
 )
 
-# Create S_180
-s_180_raw = s_180_s_181_raw
+# Define ATTR_UNIT_MEASURE strings
+s_180_aum = "Total number of internally displaced persons (conflict and violence) per 100.000 people. Calculated as 'Total Number of IDPs (Conflict and violence)' taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
+s_181_aum = "Number of new internally displaced persons (conflict and violence) per 100.000 people for a given year. Calculated as 'Number of new IDPs (Conflict and violence)' in a given year taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
+s_189_aum = "Number of new internally displaced persons (natural disasters) per 100.000 people for a given year. Calculated as 'Number of new IDPs (Conflict and violence)' in a given year taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
+s_230_aum = "Total number of internally displaced persons (natural disasters) per 100.000 people. Calculated as 'Total Number of IDPs (Conflict and violence)' taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
 
-# Calculate target KPI (number of Internally displaced people per 100.000 people)
-s_180_raw["RAW_OBS_VALUE"] = s_180_raw["Conflict Stock Displacement"] / (
-    s_180_raw["population"] * 100
-)
 
-# Add unit measure
-s_180_raw[
-    "ATTR_UNIT_MEASURE"
-] = "Total number of IDPs (conflict and violence) per 100.000 people. Calculated as 'Total Number of IDPs (Conflict and violence)' taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
+# Create list to loop through
+idmc_list = [
+    ["S-180_staged_raw.csv", "Conflict Stock Displacement", s_180_aum],
+    ["S-181_staged_raw.csv", "Conflict New Displacements", s_181_aum],
+    ["S-189_staged_raw.csv", "Disaster New Displacements", s_189_aum],
+    ["S-230_staged_raw.csv", "Disaster Stock Displacement", s_230_aum],
+]
 
-# Store data
-s_180_raw.to_csv(data_sources_staged_raw / "S-180_staged_raw.csv", sep=";")
+# Loop through list
+for element in idmc_list:
+    # Extract right columns
+    dataframe = S_180_S_181_S189_S_230_raw[["ISO3", "Year", "population", element[1]]]
 
-# Create S_180
-s_181_raw = s_180_s_181_raw
+    # Calculate target kpi --> Normalize to per 100.000 persons
+    dataframe["RAW_OBS_VALUE"] = (
+        dataframe[element[1]] / (dataframe["population"]) * 100
+    )  # Pop given inthousands, we want number per 100.000 pop
 
-# Calculate target KPI (number of Internally displaced people per 100.000 people)
-s_181_raw["RAW_OBS_VALUE"] = (
-    s_181_raw["Conflict New Displacements"] / (s_181_raw["population"]) * 100
-)
+    # Add unit measure
+    dataframe["ATTR_UNIT_MEASURE"] = element[2]
 
-# Add unit measure
-s_181_raw[
-    "ATTR_UNIT_MEASURE"
-] = "Number of new IDPs (conflict and violence) per 100.000 people for a given year. Calculated as 'Number of new IDPs (Conflict and violence)' in a given year taken from https://www.internal-displacement.org/database/displacement-data multiplied by 100 and divided by 'Total Population (given in 1.000)' taken from https://population.un.org/wpp/Download/Standard/Population//"
-
-# Store data
-s_181_raw.to_csv(data_sources_staged_raw / "S-181_staged_raw.csv", sep=";")
+    # Save data
+    dataframe.to_csv(data_sources_staged_raw / element[0], sep=";")
 
 # # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
 # # # # # # # S-185, S-186, S-187, S-188 # # # # # # # # # # # # # # # # # # # #
@@ -165,19 +171,249 @@ for element in source_list:
     # Join UN Population data to to obtain population size
     dataframe = un_pop_tot.merge(
         right=dataframe,
-        how="outer",
+        how="right",
         # on="ISO3_YEAR"
         left_on=["COUNTRY_ISO_3", "year"],
         right_on=["COUNTRY_ISO_3", "timePeriodStart"],
     )
 
     # Calculate target KPI (number of Internally displaced people per 100.000 people)
-    dataframe["RAW_OBS_VALUE"] = dataframe["value"].astype(float) / (
-        dataframe["population"] * 100
-    )
+    dataframe["RAW_OBS_VALUE"] = (
+        dataframe["value"].astype(float) / (dataframe["population"]) * 100
+    )  # Pop given inthousands, we want number per 100.000 pop
 
     # Add unit measure
     dataframe["ATTR_UNIT_MEASURE"] = element[2]
 
     # Store data
     dataframe.to_csv(data_sources_staged_raw / element[1], sep=";")
+
+
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-157# # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+# Obtainraw data
+dataframe = extract.CSVExtractor.extract(
+    url="http://apps.who.int/gho/athena/api/GHO/AIR_4.csv"
+)
+
+# We only have the population data for both sexes, so discrd other dimensionsubgroups
+dataframe = dataframe.loc[dataframe.SEX == "BTSX"]
+
+# Obtain population data
+population_data = extract.CSVExtractor.extract(
+    url="https://sdmx.data.unicef.org/ws/public/sdmxapi/rest/data/UNICEF,DM,1.0/.DM_POP_U5...?format=sdmx-csv&startPeriod=2015&endPeriod=2020"
+)
+
+# Extract ISO3 code from population data
+population_data["COUNTRY_ISO_3"] = population_data["REF_AREA:Geographic area"].apply(
+    lambda x: re.findall("^\w+", x)[0]
+)
+
+# Discard unnecessary columns
+population_data = population_data[
+    ["TIME_PERIOD:Time period", "OBS_VALUE:Observation Value", "COUNTRY_ISO_3"]
+]
+
+# Join population data to raw data
+s_157 = population_data.merge(
+    right=dataframe, how="right", left_on="COUNTRY_ISO_3", right_on="COUNTRY"
+)
+
+# Compute target raw observation value
+s_157["RAW_OBS_VALUE"] = s_157["Numeric"] / (s_157["OBS_VALUE:Observation Value"]) * 100
+
+# Add attribute
+
+s_157[
+    "ATTR_UNIT_MEASURE"
+] = "The burden of disease attributable to ambient air pollution expressed as Number of deaths of children under 5 years per 100.000 children under 5 years. Note: Data about deaths drawm from WHO (https://apps.who.int/gho/data/node.imr.AIR_4?lang=en), refering to year 2016. Data about population under 5 years drawn from UNICEF (https://data.unicef.org/resources/data_explorer/unicef_f/?ag=UNICEF&df=GLOBAL_DATAFLOW&ver=1.0&dq=.DM_POP_U5..&startPeriod=2008&endPeriod=2018), referring to year 2018. Due to a lack of matching data, the WHO data from 2016 had to be normalized with population data from 2018."
+
+# Store data
+s_157.to_csv(data_sources_staged_raw / "S-157_staged_raw.csv", sep=";")
+
+# # # # # # # Economist intelligence unit # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-11, S-120, S-124, S-134 # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+
+### Economist data
+S_11_S120_s_124_s_134 = pd.read_excel(
+    data_in
+    / "data_raw_manually_extracted"
+    / "S-11, S-120, S-124, S-134 OOSI_Out_of_the_shadows_index_60-countries_May2019.xlsm",
+    sheet_name="Ranking",
+    header=17,
+    usecols=[
+        "Unnamed: 11",
+        "Score",
+        "Unnamed: 20",
+        "Score.1",
+        "Unnamed: 29",
+        "Score.2",
+        "Unnamed: 38",
+        "Score.3",
+        "Unnamed: 47",
+        "Score.4",
+    ],
+)
+
+# Define list to extract the relevant columns and save them as raw data csv
+eit_list = [
+    ["S-11_staged_raw.csv", ["Score.2", "Unnamed: 29"]],
+    ["S-120_staged_raw.csv", ["Score.2", "Unnamed: 29"]],
+    ["S-124_staged_raw.csv", ["Score.1", "Unnamed: 20"]],
+    ["S-134_staged_raw.csv", ["Score.3", "Unnamed: 38"]],
+    ["S-229_staged_raw.csv", ["Score.4", "Unnamed: 47"]],
+]
+
+# Loop through list
+for element in eit_list:
+    # Extract right columns
+    dataframe = S_11_S120_s_124_s_134[element[1]]
+
+    # Rename clumns
+    dataframe = dataframe.rename(
+        columns={element[1][0]: "RAW_OBS_VALUE", element[1][1]: "COUNTRY_NAME"}
+    )
+
+    # Add year column
+    dataframe["TIME_PERIOD"] = 2019
+
+    # Save data
+    dataframe.to_csv(data_sources_staged_raw / element[0], sep=";")
+
+
+# # # # # # # ICRC treaties # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-168, S-169, S170 # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+
+try:
+    # Try loading data from endpoint (preferred)
+    S_149_150_151 = pd.read_excel(
+        "http://ihl-databases.icrc.org/applic/ihl/ihl.nsf/xsp/.ibmmodres/domino/OpenAttachment/applic/ihl/ihl.nsf/40BAD58D71673B1CC125861400334BC4/%24File/IHL_and_other_related_Treaties.xls?Open",
+        sheet_name="IHL and other related Treaties",
+        header=1,
+    )
+except:
+    # Load from local file if endpoint is donw
+    S_149_150_151 = pd.read_excel(
+        data_in
+        / "data_raw_manually_extracted"
+        / "S-149, S-150, S-151-IHL_and_other_related_Treaties.xls",
+        sheet_name="IHL and other related Treaties",
+        header=1,
+    )
+
+    # Log
+    print(
+        "Data for sources S-149, S-150 and S-151 could not be extracted URL endpoint. Loaded data from local repository."
+    )
+
+
+# Create list to loop through
+icrc_list = [
+    ["S-149_staged_raw.csv", "GC I-IV 1949"],
+    ["S-150_staged_raw.csv", "AP I 1977"],
+    ["S-151_staged_raw.csv", "AP II 1977"],
+]
+
+
+# Loop through list
+for element in icrc_list:
+    # Extract right columns
+    dataframe = S_149_150_151[["Country", element[1]]]
+
+    # Rename clumns
+    dataframe = dataframe.rename(columns={element[1]: "ATTR_RATIFICATION_DATE"})
+
+    # Add year column
+    dataframe["TIME_PERIOD"] = 2020
+
+    # Save data
+    dataframe.to_csv(data_sources_staged_raw / element[0], sep=";")
+
+    # These indicators will probably require special attention/ a disting sort of pipeline
+    # The below code works just fine, but still need to include the savings part --> Where to put this loop bit?
+    """ 
+    # Cleansing
+    dataframe = cleanse.Cleanser().rename_and_discard_columns(
+        raw_data=dataframe,
+        mapping_dictionary=mapping_dict,
+        final_sdmx_col_list=sdmx_df_columns_all
+    )
+
+    dataframe = cleanse.Cleanser().add_and_discard_countries(
+        grouped_data=dataframe,
+        crba_country_list=country_crba_list,
+        country_list_full = country_full_list
+    )
+
+    dataframe_cleansed = cleanse.Cleanser().encode_ilo_un_treaty_data(
+        dataframe = dataframe,
+        treaty_source_body = "UN Treaties"
+    )
+
+    cleanse.Cleanser().create_log_report(
+        cleansed_data=dataframe_cleansed
+    )
+    
+    # Normalizing section
+    dataframe_normalized = scaler.normalizer(
+        cleansed_data = dataframe_cleansed,
+        sql_subset_query_string=row["DIMENSION_VALUES_NORMALIZATION"],
+        # dim_cols=sdmx_df_columns_dims,
+        variable_type = row["VALUE_LABELS"],
+        is_inverted = row["INVERT_NORMALIZATION"],
+        whisker_factor=1.5,
+        raw_data_col="RAW_OBS_VALUE",
+        scaled_data_col_name="SCALED_OBS_VALUE",
+        maximum_score=10,
+        )
+    """
+
+    # # # # # # # CRIN treaties # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-131, S-193 # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+try:
+    # Try loading data from endpoint (preferred)
+    S_131_193 = pd.read_excel(
+        "https://archive.crin.org/sites/default/files/access_to_justice_data.xls",
+        sheet_name="All countries",
+        header=1,
+    ).drop(
+        [0, 1]
+    )  # drop rows that don't contain data
+except:
+    # Load from local file if endpoint is donw
+    S_131_193 = pd.read_excel(
+        data_in
+        / "data_raw_manually_extracted"
+        / "S-131, S-193-access_to_justice_data.xls",
+        sheet_name="All countries",
+        header=1,
+    ).drop(
+        [0, 1]
+    )  # drop rows that don't contain data
+
+    # Log
+    print(
+        "Data for sources S-131 and S-193 could not be extracted URL endpoint. Loaded data from local repository."
+    )
+
+
+# Create list to loop through
+crin_list = [
+    ["S-131_staged_raw.csv", "Unnamed: 2"],
+    ["S-193_staged_raw.csv", "Sub-total"],
+]
+
+# Loop through list
+for element in crin_list:
+    # Extract right columns
+    dataframe = S_131_193[["Unnamed: 1", element[1]]]
+
+    # Add year column
+    dataframe["TIME_PERIOD"] = 2016
+
+    # Save data
+    dataframe.to_csv(data_sources_staged_raw / element[0], sep=";")

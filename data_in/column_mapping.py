@@ -85,6 +85,7 @@ country_tuple = (
     "Participant 2, 3, 4",
     "Participant 2",
     "Country",
+    # "country.value",
 )
 country_mapper = {key: "COUNTRY_NAME" for key in country_tuple}
 
@@ -93,14 +94,30 @@ iso_2_tuple = ("REF_AREA", "COUNTRY_ISO_2")
 iso_2_mapper = {key: "COUNTRY_ISO_2" for key in iso_2_tuple}
 
 # Iso 3
-iso_3_tuple = ("REF_AREA", "COUNTRY", "COUNTRY_ISO_3", "iso3")
+iso_3_tuple = (
+    "REF_AREA",
+    "COUNTRY",
+    "COUNTRY_ISO_3",
+    "iso3",
+    "countryiso3code",
+    "CDAREAS:Areas",
+)
 iso_3_mapper = {key: "COUNTRY_ISO_3" for key in iso_3_tuple}
 
 # # # # # # # # # # # # #
 # # # # Year # # # #
 # # # # # # # # # # # # #
 # Year column
-year_tuple = ("TIME_PERIOD", "YEAR", "timePeriod", "timePeriodStart", "Year")
+year_tuple = (
+    "TIME_PERIOD",
+    "YEAR",
+    "timePeriod",
+    "timePeriodStart",
+    "Year",
+    "TIME_PERIOD:Time period",
+    "date",
+    "ElementNumber",
+)
 year_mapper = {key: "TIME_PERIOD" for key in year_tuple}
 
 # # # # # # # # # # # # #
@@ -132,6 +149,10 @@ obs_value_tuple = (
     "maternal_min_wrr_ilo",
     "paternal_leave",
     "breastfeed_duration",
+    "day_of_rest",
+    "night_premium",
+    "OBS_VALUE:Observation value",
+    "Score",
 )
 obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 
@@ -140,7 +161,7 @@ obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 # # # # # # # # # # # # #
 
 # Gender
-dim_sex_tuple = ("SEX", "dimensions.Sex", "DIM_SEX", "Sex")
+dim_sex_tuple = ("SEX", "dimensions.Sex", "DIM_SEX", "Sex", "CDGENDER:Sex")
 dim_sex_mapper = {key: "DIM_SEX" for key in dim_sex_tuple}
 
 # Education level
@@ -152,7 +173,13 @@ dim_age_tuple = ("AGE", "DIM_AGE")
 dim_age_mapper = {key: "DIM_AGE" for key in dim_age_tuple}
 
 # Age group
-dim_age_group_tuple = ("AGEGROUP", "dimensions.Age", "DIM_AGE_GROUP", "Current age")
+dim_age_group_tuple = (
+    "AGEGROUP",
+    "dimensions.Age",
+    "DIM_AGE_GROUP",
+    "Current age",
+    "CDAGE:Age groups",
+)
 dim_age_group_mapper = {key: "DIM_AGE_GROUP" for key in dim_age_group_tuple}
 
 # Management level
@@ -184,12 +211,25 @@ dim_reporting_type_tuple = ("dimensions.Reporting Type", "DIM_REP_TYPE")
 dim_reporting_type_mapper = {key: "DIM_REP_TYPE" for key in dim_reporting_type_tuple}
 
 # Activity (sector)
-dim_sector_tuple = ("dimensions.Activity", "DIM_SECTOR")
+dim_sector_tuple = ("dimensions.Activity", "DIM_SECTOR", "Sector")
 dim_sector_mapper = {key: "DIM_SECTOR" for key in dim_sector_tuple}
 
 # Alcohol type
-alc_type_tuple = ("ALCOHOLTYPE",)
+alc_type_tuple = ("ALCOHOLTYPE", "ADVERTISINGTYPE")
 alc_type_mapper = {key: "DIM_ALCOHOL_TYPE" for key in alc_type_tuple}
+
+# Policy Type
+policy_type_tuple = ("dimensions.Policy instruments",)
+policy_type_mapper = {key: "DIM_POLICY_TYPE" for key in policy_type_tuple}
+
+# cause type
+cause_type_tuple = ("CDDEMOSTRATIFIERS:Other stratifiers",)
+cause_type_mapper = {key: "DIM_CAUSE_TYPE" for key in cause_type_tuple}
+
+# Element type
+element_type_tuple = ("ElementName",)
+element_type_mapper = {key: "DIM_ELEMENT_TYPE" for key in element_type_tuple}
+
 
 # # # # # # # # # # # # #
 # # # # Attributes # # # #
@@ -262,11 +302,11 @@ un_treaty_rat_details_tup = (
     "Definitive signature(s), Ratification, Acceptance(A), Approval(AA), Accession(a)",
     "Accession(a), Ratification",
     "Date",
+    "ATTR_RATIFICATION_DATE",
 )
 un_treaty_rat_details_mapper = {
     key: "ATTR_RATIFICATION_DATE" for key in un_treaty_rat_details_tup
 }
-
 
 # ILO Normlex treaty status
 ilo_treaty_status_tup = ("Status",)
@@ -305,6 +345,9 @@ mapper_tuple_list = [
     un_treaty_rat_details_mapper,
     ilo_treaty_status_mapper,
     alc_type_mapper,
+    policy_type_mapper,
+    cause_type_mapper,
+    element_type_mapper,
 ]
 
 # Define the mapping dictionary
@@ -340,6 +383,9 @@ sdmx_df_columns_dims = [
     "DIM_REP_TYPE",
     "DIM_SECTOR",
     "DIM_ALCOHOL_TYPE",
+    "DIM_POLICY_TYPE",
+    "DIM_CAUSE_TYPE",
+    "DIM_ELEMENT_TYPE",
 ]
 
 
