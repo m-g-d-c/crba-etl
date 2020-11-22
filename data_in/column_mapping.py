@@ -86,6 +86,7 @@ country_tuple = (
     "Participant 2",
     "Country",
     # "country.value",
+    "Party",
 )
 country_mapper = {key: "COUNTRY_NAME" for key in country_tuple}
 
@@ -101,6 +102,7 @@ iso_3_tuple = (
     "iso3",
     "countryiso3code",
     "CDAREAS:Areas",
+    "ISO_Code",
 )
 iso_3_mapper = {key: "COUNTRY_ISO_3" for key in iso_3_tuple}
 
@@ -153,6 +155,7 @@ obs_value_tuple = (
     "night_premium",
     "OBS_VALUE:Observation value",
     "Score",
+    "IC_F",
 )
 obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 
@@ -236,7 +239,13 @@ element_type_mapper = {key: "DIM_ELEMENT_TYPE" for key in element_type_tuple}
 # # # # # # # # # # # # #
 
 # Source note
-source_note_tuple = ("SOURCE_NOTE", "ATTR_SOURCE_NOTE", "OBS_FOOTNOTE", "Note")
+source_note_tuple = (
+    "SOURCE_NOTE",
+    "ATTR_SOURCE_NOTE",
+    "OBS_FOOTNOTE",
+    "Note",
+    "IC_Notes",
+)
 source_mapper = {key: "ATTR_NOTE_OF_SOURCE" for key in source_note_tuple}
 
 # Indicator note from source

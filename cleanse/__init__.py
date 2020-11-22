@@ -335,8 +335,6 @@ class Cleanser:
                 validate="many_to_one",
             )
 
-            print(grouped_data_iso)
-
             # Discard countries that aren't part of the final CRBA master list
             grouped_data_iso_filt = grouped_data_iso.merge(
                 right=crba_country_list[["COUNTRY_ISO_3"]],

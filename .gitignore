@@ -28,6 +28,8 @@ data/*/z_archive
 # exclude tmee data
 tmee/data_raw/*
 tmee/data_transformed/*
+/tmee/data_raw/*
+/tmee/data_transformed/*
 
 
 # Exclude all data output by the ETL script

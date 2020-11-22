@@ -417,3 +417,97 @@ for element in crin_list:
 
     # Save data
     dataframe.to_csv(data_sources_staged_raw / element[0], sep=";")
+
+
+# # # # # # # FCTC data # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-89 # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+
+# Load from local file if endpoint is donw
+S_89 = pd.read_excel(
+    data_in / "data_raw_manually_extracted" / "S-89 Answers_v2.xlsx",
+)
+
+# Unpivot
+S_89 = S_89.melt(id_vars="Party", var_name="TIME_PERIOD", value_name="RAW_OBS_VALUE")
+
+# save data
+S_89.to_csv(data_sources_staged_raw / "S-89_staged_raw.csv", sep=";")
+
+
+# # # # # # # Landmark data # # # # # # # # # # # # # # # # # # # #
+# # # # # # # S-167 # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
+
+# Read data
+S_167 = pd.read_excel(
+    data_in
+    / "data_raw_manually_extracted"
+    / "S_167_Pct_IP_CommunityLands"
+    / "Pct_IP_CommunityLands_20170623.xls",
+    sheet_name="Pct_IP_CommunityLands",
+)
+
+# The UK is split up here in its terriroties, must aggregate the data to UK-national level again
+
+# Pandas interprets the percentage column sometimes as string, sometimes as number  --> Convert all to numbers (in %, i.e. between 0 - 100)
+S_167["IC_F"] = S_167["IC_F"].apply(
+    lambda x: x * 100
+    if type(x) != str
+    else ("No data" if x == "No data" else float(re.sub("%", "", x)))
+)
+
+# Sub selection of all GBR terriroties
+country_land_gbr = S_167.loc[236:239, "Ctry_Land"]
+
+# Calculate total area size of Great Britain
+total_land_gbr = sum(country_land_gbr)
+
+# Obtain percentage of indigenous land of all UK areas
+land_percentage = S_167.loc[
+    236:239, "IC_F"
+]  # .apply(lambda x: float(re.sub('%', '', x)) if type(x)==str else x * 100)
+
+# Compute total sqm rather than % of total land of indigenous land
+indi_land_tot = []
+for i in range(len(land_percentage)):
+    indi_land_tot += [land_percentage.iloc[i] * country_land_gbr.iloc[i] / 100]
+
+# Total sum of all indiegnous land of all UK territories
+total_indi_land = sum(indi_land_tot)
+
+# Percentage of indigenous land in ALL UK
+total_indi_land_percent = total_indi_land / total_land_gbr * 100
+
+# Store all of this data in a dataframe to append it to the existing dataframe
+uk_df = pd.DataFrame(
+    [
+        [
+            "GBR",
+            np.nan,
+            np.nan,
+            "United Kingdom",
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            total_indi_land_percent,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            np.nan,
+            "According to the Eurostats study on common lands in Europe of 2010, common lands in the UK is always permanent grassland in the form of rough grazing. Much of these lands are found in the remote upland areas, and in many instance they have at least one special designation preventing their agricultural improvement. The area of these common lands across the UK are :591 901 ha in Scotland, 427 889 ha in England, 180 305 ha in Wales, 36 438 ha in Northern Ireland. Source : Eurostat, 2010. Farm structure survey - common land. Available at : http://ec.europa.eu/eurostat/statistics-explained/index.php?title=Common_land_statistics_-_background&oldid=262743<br>Jones, Gwyn. 2015. Common Grazing in Scotland - importance, governance, issues. Presentation at the EFNCP, available at : http://www.efncp.org/download/common-ground2015/Commons10Jones.pdf. There are also some lands held in in community ownership in Scotland. The latest figure of their total area is 0.19 Mha (470 094 acres). Based on a land mass of Scotland of 7.79 Mha (19.25 M acres), this would represent 2.44% of Scotland’s land mass. This figure has been calculated using the definition of Community Ownership that was agreed by the Scottish Government Short Life Working Group on community land ownership (I million acre target group) in September 2015. <br>Source: Peter Peacock, Community Land Scotland, personal communication. 2015/09/21. The component countries of  the United Kingdom have been treated separately on LandMark.",
+        ]
+    ],
+    columns=S_167.columns,
+)
+
+# Append dataframe
+S_167 = S_167.append(other=uk_df)
+
+# Add time period
+S_167["TIME_PERIOD"] = 2017
+
+# save data
+S_167.to_csv(data_sources_staged_raw / "S-167_staged_raw.csv", sep=";")
