@@ -87,6 +87,7 @@ country_tuple = (
     "Country",
     # "country.value",
     "Party",
+    "Country/Region",
 )
 country_mapper = {key: "COUNTRY_NAME" for key in country_tuple}
 
@@ -103,6 +104,8 @@ iso_3_tuple = (
     "countryiso3code",
     "CDAREAS:Areas",
     "ISO_Code",
+    "ISO3",
+    "iso3",
 )
 iso_3_mapper = {key: "COUNTRY_ISO_3" for key in iso_3_tuple}
 
@@ -156,6 +159,7 @@ obs_value_tuple = (
     "OBS_VALUE:Observation value",
     "Score",
     "IC_F",
+    "Value",
 )
 obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 
@@ -255,7 +259,7 @@ source_indicator_mapper = {
 }
 
 # Unit measure
-unit_measure_tuple = ("UNIT_MEASURE", "attributes.Units", "ATTR_UNIT_MEASURE")
+unit_measure_tuple = ("UNIT_MEASURE", "attributes.Units", "ATTR_UNIT_MEASURE", "unit")
 unit_measure_mapper = {key: "ATTR_UNIT_MEASURE" for key in unit_measure_tuple}
 
 # Observation status

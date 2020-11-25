@@ -162,7 +162,7 @@ def normalizer(
                 print(pd.to_numeric(cleansed_data_subset[raw_data_col]).hist(bins=30))
 
         # Define the value range that is used for the scaling (normalization)
-        tot_range = max_val - min_val
+        tot_range = max_to_use - min_to_use
 
         # Compute the normalized value of the raw data
         # Distinguish between indicators, whose value must be inverted
@@ -170,7 +170,7 @@ def normalizer(
             cleansed_data_subset[scaled_data_col_name] = round(
                 maximum_score
                 - maximum_score
-                * (cleansed_data_subset[raw_data_col].astype("float") - min_val)
+                * (cleansed_data_subset[raw_data_col].astype("float") - min_to_use)
                 / tot_range,
                 2,
             )
@@ -178,7 +178,7 @@ def normalizer(
         elif is_inverted == "not inverted":
             cleansed_data_subset[scaled_data_col_name] = round(
                 maximum_score
-                * (cleansed_data_subset[raw_data_col].astype("float") - min_val)
+                * (cleansed_data_subset[raw_data_col].astype("float") - min_to_use)
                 / tot_range,
                 2,
             )
@@ -186,6 +186,15 @@ def normalizer(
             raise ValueError(
                 "This is a numeric indicator, so you must specify whether or not it is inverted"
             )
+
+        # If outliers are present and max_to_use != max_value OR min_to_use != min_value
+        # Scores may be out of range [0; 10], so must round them down
+        cleansed_data_subset.loc[
+            cleansed_data_subset[scaled_data_col_name] < 0, scaled_data_col_name
+        ] = 0
+        cleansed_data_subset.loc[
+            cleansed_data_subset[scaled_data_col_name] > 10, scaled_data_col_name
+        ] = 10
 
         # join normalized data to original dataframe
         cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
