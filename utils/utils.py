@@ -25,7 +25,7 @@ def create_ind_code(indicator_name):
     """
 
     # Remove characters
-    ind_nam_charfree = re.sub("[,.-;')(]", "", indicator_name)
+    ind_nam_charfree = re.sub("[,.\-;')(]", "", indicator_name)
 
     # Tokenize indicator name
     ind_name_tok = nltk.tokenize.word_tokenize(ind_nam_charfree)

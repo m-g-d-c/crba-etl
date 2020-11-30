@@ -14,6 +14,7 @@ def normalizer(
     scaled_data_col_name="SCALED_OBS_VALUE",
     maximum_score=10,
     log_info=False,
+    country_iso_3_col="COUNTRY_ISO_3",
 ):
     """Normalize the RAW_OBS_VALUES into indicator scores
 
@@ -56,6 +57,11 @@ def normalizer(
             cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
         else:
             cleansed_data_subset = cleansed_data
+
+        # Check that there aren't duplicates, which would imply that the dimension-subgroups have not been properly defined and a row in the subset is not unqiuely defined by the dimensions and country
+        assert (
+            sum(cleansed_data_subset[country_iso_3_col].duplicated()) == 0
+        ), "There are duplicated countries in the defined dimension-subgroup dataframe. It seems like the dimension-subgroup for the normalization has not been properly defined (most likely you forgot to specifiy a defining-dimension value."
 
         # Build conditions array
         unique_values = cleansed_data_subset[raw_data_col].unique()
@@ -101,6 +107,11 @@ def normalizer(
             cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
         else:
             cleansed_data_subset = cleansed_data
+
+        # Check that there aren't duplicates, which would imply that the dimension-subgroups have not been properly defined and a row in the subset is not unqiuely defined by the dimensions and country
+        assert (
+            sum(cleansed_data_subset[country_iso_3_col].duplicated()) == 0
+        ), "There are duplicated countries in the defined dimension-subgroup dataframe. It seems like the dimension-subgroup for the normalization has not been properly defined (most likely you forgot to specifiy a defining-dimension value."
 
         # Determine basic descriptive statistics of the distribution that are required for the normalization
         min_val = np.nanmin(cleansed_data_subset[raw_data_col].astype("float"))
