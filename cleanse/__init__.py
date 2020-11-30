@@ -197,6 +197,7 @@ class Cleanser:
         country_cols,
         time_cols,
         attr_cols,
+        obs_val_col="RAW_OBS_VALUE",
     ):
         """Retrieve latest observation for each country in a raw dataset
 
@@ -241,6 +242,9 @@ class Cleanser:
         )
 
         # 3. Retrieve the latest available data for each group, where group is 'col_list_gb'
+        # In some DFs, there are NA value as the latest observation. Drop those
+        renamed_data = renamed_data.dropna(subset=[obs_val_col])
+
         grouped_data = renamed_data[
             renamed_data[available_time_list[0]]
             == renamed_data.groupby(by=available_dims_list + available_country_list)[
@@ -668,7 +672,7 @@ class Cleanser:
         return dataframe
 
     @classmethod
-    def create_log_report(
+    def create_log_report_delete_duplicates(
         cls, cleansed_data, raw_obs_col="RAW_OBS_VALUE", year_col="TIME_PERIOD"
     ):
         """
