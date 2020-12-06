@@ -62,13 +62,11 @@ def normalizer(
     else:
         cleansed_data_subset = cleansed_data
 
-    # Exclude observations older than 10 years
-    cleansed_data_subset = cleansed_data_subset[cleansed_data_subset[time_col] >= 2010]
-
     # In some sources, e.g. S-161 and S-186 country_iso_3 "FSM" has two data points
     # Simply take one of the values so as to not break the pipeline
     # Calculate number of country_iso_3 codes without 'FSM', to avoid applying the below code of
     # Dropping duplicats in cases whre there is actual duplicates, and not only FSM
+    # For readability: Create variables with conditions
     temp_grouped_series = (
         cleansed_data_subset.loc[
             cleansed_data_subset[country_iso_3_col] != "FSM",
@@ -78,36 +76,25 @@ def normalizer(
         .count()[raw_data_col]
     )
 
+    # FSM double
+    fsm_double_len = len(
+        cleansed_data_subset.loc[
+            cleansed_data_subset[country_iso_3_col] == "FSM", country_iso_3_col
+        ]
+    )
+
+    # countries excluding FSM
+    countries_not_fsm = len(
+        cleansed_data_subset.loc[
+            cleansed_data_subset[country_iso_3_col] != "FSM", country_iso_3_col
+        ]
+    )
+
     # Calucate average number of countries in subgroup without FSM --> Should be 1
     average_country_number = sum(temp_grouped_series) / len(temp_grouped_series)
 
-    if (
-        (
-            len(
-                cleansed_data_subset.loc[
-                    cleansed_data_subset[country_iso_3_col] == "FSM", country_iso_3_col
-                ]
-            )
-            == 2
-        )
-        & (average_country_number == 1)
-    ) | (
-        (
-            len(
-                cleansed_data_subset.loc[
-                    cleansed_data_subset[country_iso_3_col] == "FSM", country_iso_3_col
-                ]
-            )
-            == 2
-        )
-        & (
-            len(
-                cleansed_data_subset.loc[
-                    cleansed_data_subset[country_iso_3_col] != "FSM", country_iso_3_col
-                ]
-            )
-            == 194
-        )
+    if ((fsm_double_len == 2) & (average_country_number == 1)) | (
+        (fsm_double_len == 2) & (countries_not_fsm == 194)
     ):
         print(
             "Dataset contains two values for Federated States of Micronesia (ISO3 code 'FSM'). Now taking the first value for FSM to proceed with normalizer."
@@ -118,6 +105,9 @@ def normalizer(
             subset=country_iso_3_col
         )
     # End of section to check if its a double-FSM (and only FSM-double)dataset
+
+    # Exclude observations older than 10 years
+    cleansed_data_subset = cleansed_data_subset[cleansed_data_subset[time_col] >= 2010]
 
     # Check that there aren't duplicates, which would imply that the dimension-subgroups have not been properly defined and a row in the subset is not unqiuely defined by the dimensions and country
     assert (
@@ -265,6 +255,7 @@ def normalizer(
         # Distinguish between indicators, whose value must be inverted
         if is_inverted == "inverted":
             # Debug 03.12.20
+            print(" \n These are the values taken for the normalization: \n \n ")
             print(f"Max Score: {maximum_score}")
             print(f"Min to use: {min_to_use}")
             print(f"tot range: {tot_range}")
@@ -292,7 +283,7 @@ def normalizer(
 
             # print(scaled_series)
 
-            print("Printing scaled subset: \n \n \n")
+            # print("Printing scaled subset: \n \n \n")
             # cleansed_data_subset[scaled_data_col_name] = scaled_series
             # print(cleansed_data_subset)
 
@@ -351,7 +342,7 @@ def normalizer(
         ] = 10
 
         # # # # #
-        print("Printing scaled subset after the normalisation to 0 and 10: \n \n \n")
+        # print("Printing scaled subset after the normalisation to 0 and 10: \n \n \n")
         # print(cleansed_data_subset)
         # # # # #
 
