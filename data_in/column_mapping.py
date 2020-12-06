@@ -106,6 +106,7 @@ iso_3_tuple = (
     "ISO_Code",
     "ISO3",
     "iso3",
+    "REF_AREA:Country",
 )
 iso_3_mapper = {key: "COUNTRY_ISO_3" for key in iso_3_tuple}
 
@@ -160,6 +161,7 @@ obs_value_tuple = (
     "Score",
     "IC_F",
     "Value",
+    "OBS_VALUE:Observation Value",
 )
 obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 
@@ -168,7 +170,7 @@ obs_value_mapper = {key: "RAW_OBS_VALUE" for key in obs_value_tuple}
 # # # # # # # # # # # # #
 
 # Gender
-dim_sex_tuple = ("SEX", "dimensions.Sex", "DIM_SEX", "Sex", "CDGENDER:Sex")
+dim_sex_tuple = ("SEX", "dimensions.Sex", "DIM_SEX", "Sex", "CDGENDER:Sex", "SEX:Sex")
 dim_sex_mapper = {key: "DIM_SEX" for key in dim_sex_tuple}
 
 # Education level
@@ -186,6 +188,7 @@ dim_age_group_tuple = (
     "DIM_AGE_GROUP",
     "Current age",
     "CDAGE:Age groups",
+    "AGE:Current age",
 )
 dim_age_group_mapper = {key: "DIM_AGE_GROUP" for key in dim_age_group_tuple}
 
@@ -196,11 +199,15 @@ dim_management_level_mapper = {
 }
 
 # Area type (rural vs urban)
-dim_area_type_tuple = ("RESIDENCEAREATYPE", "DIM_AREA_TYPE")
+dim_area_type_tuple = ("RESIDENCEAREATYPE", "DIM_AREA_TYPE", "RESIDENCE:Residence")
 dim_area_type_mapper = {key: "DIM_AREA_TYPE" for key in dim_area_type_tuple}
 
 # Quantile
-dim_quantile_tuple = ("dimensions.Quantile", "DIM_QUANTILE")
+dim_quantile_tuple = (
+    "dimensions.Quantile",
+    "DIM_QUANTILE",
+    "WEALTH_QUINTILE:Wealth Quintile",
+)
 dim_quantile_mapper = {key: "DIM_QUANTILE" for key in dim_quantile_tuple}
 
 # SDG Goal --> Indicators S-183, S-184 and S-185 have the SDG indicator as dimension,
@@ -237,6 +244,10 @@ cause_type_mapper = {key: "DIM_CAUSE_TYPE" for key in cause_type_tuple}
 element_type_tuple = ("ElementName",)
 element_type_mapper = {key: "DIM_ELEMENT_TYPE" for key in element_type_tuple}
 
+# Maternal education level
+mat_edu_level_tuple = ("MATERNAL_EDU_LVL:Mother's Education Level",)
+mat_edu_level_mapper = {key: "DIM_MATERNAL_EDU_LVL" for key in mat_edu_level_tuple}
+
 
 # # # # # # # # # # # # #
 # # # # Attributes # # # #
@@ -259,11 +270,17 @@ source_indicator_mapper = {
 }
 
 # Unit measure
-unit_measure_tuple = ("UNIT_MEASURE", "attributes.Units", "ATTR_UNIT_MEASURE", "unit")
+unit_measure_tuple = (
+    "UNIT_MEASURE",
+    "attributes.Units",
+    "ATTR_UNIT_MEASURE",
+    "unit",
+    "UNIT_MEASURE:Unit of measure",
+)
 unit_measure_mapper = {key: "ATTR_UNIT_MEASURE" for key in unit_measure_tuple}
 
 # Observation status
-obs_status_tuple = ("OBS_STATUS", "Observation Status")
+obs_status_tuple = ("OBS_STATUS", "Observation Status", "OBS_STATUS:Observation Status")
 obs_status_mapper = {key: "ATTR_SOURCE_OBS_STATUS" for key in obs_status_tuple}
 
 # Source comments
@@ -283,13 +300,23 @@ sdg_indicator_desc_mapper = {
 }
 
 # Source of source
-source_of_source_tuple = ("source", "ATTR_SOURCE_OF_SOURCE", "DATA_SOURCE")
+source_of_source_tuple = (
+    "source",
+    "ATTR_SOURCE_OF_SOURCE",
+    "DATA_SOURCE",
+    "DATA_SOURCE:Data Source",
+)
 source_of_source_mapper = {
     key: "ATTR_SOURCE_OF_SOURCE" for key in source_of_source_tuple
 }
 
 # Source of source footnotes
-footnotes_of_source_tuple = ("footnotes", "ATTR_FOOTNOTE_OF_SOURCE")
+footnotes_of_source_tuple = (
+    "footnotes",
+    "ATTR_FOOTNOTE_OF_SOURCE",
+    # "SERIES_FOOTNOTE:Series footnote",
+    "OBS_FOOTNOTE:Observation footnote",
+)
 footnotes_of_source_mapper = {
     key: "ATTR_FOOTNOTE_OF_SOURCE" for key in footnotes_of_source_tuple
 }
@@ -361,6 +388,7 @@ mapper_tuple_list = [
     policy_type_mapper,
     cause_type_mapper,
     element_type_mapper,
+    mat_edu_level_mapper,
 ]
 
 # Define the mapping dictionary
@@ -399,6 +427,7 @@ sdmx_df_columns_dims = [
     "DIM_POLICY_TYPE",
     "DIM_CAUSE_TYPE",
     "DIM_ELEMENT_TYPE",
+    "DIM_MATERNAL_EDU_LVL",
 ]
 
 

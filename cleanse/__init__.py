@@ -123,6 +123,26 @@ class Cleanser:
         return raw_data
 
     @classmethod
+    def convert_nan_strings_into_nan(cls, dataframe, raw_data_col="RAW_OBS_VALUE"):
+        """Convert 'NaN' strings into actual np.nan
+
+        Some datasources, e.g. S-161, have the string 'NaN' rather than actual
+        NaN values. This function converts them.
+        """
+        print("\n Calling function 'convert_nan_strings_into_nan'...")
+        # Check if 'NaN' is in string
+        if "NaN" in dataframe[raw_data_col].unique():
+            print(
+                "raw_obs_col contains 'NaN' strings. Converting them to actual np.nan values."
+            )
+            # Convert values
+            dataframe.loc[dataframe[raw_data_col] == "NaN", raw_data_col] = np.nan
+        else:
+            pass
+
+        return dataframe
+
+    @classmethod
     def extract_year_from_timeperiod(
         cls, dataframe, year_col="TIME_PERIOD", time_cov_col="COVERAGE_TIME"
     ):
@@ -237,6 +257,12 @@ class Cleanser:
         renamed_data[available_dims_list] = renamed_data[available_dims_list].astype(
             str
         )
+
+        # Debug here:
+        # print(available_attr_list)
+        # print(renamed_data)
+        # print(renamed_data[available_attr_list])
+
         renamed_data[available_attr_list] = renamed_data[available_attr_list].astype(
             str
         )
@@ -291,6 +317,9 @@ class Cleanser:
         DataFrame which contains at least one row for each country (or more if there dimensions
         in the dataset), and only those countries which are supposed to be in the final CRBA SDMX dataframe.
         """
+        # TO DO: Refactor code; This function can be set up more elegantly now,
+        # since we renamed all country cols before and it is clear which country
+        # column is in the dataframe
         print("\n Calling function 'add_and_discard_countries'...")
 
         # Determine intersection of country key col in CRBA country list and raw data
@@ -298,7 +327,7 @@ class Cleanser:
             col for col in crba_country_list.columns if col in grouped_data.columns
         ]
 
-        # Cast as single string rather than list in case there is only only column
+        # Cast as single string rather than list in case there is only one column
         if len(country_col_right_join) == 1:
             country_col_right_join = country_col_right_join[0]
 
@@ -346,6 +375,18 @@ class Cleanser:
                 on="COUNTRY_ISO_3",
                 indicator=True,
                 validate="many_to_one",
+            )
+
+        # Force COUNTY_ISO_3 codes to be present, this is for sources which work only with ISO2 country codes
+        if "COUNTRY_ISO_3" not in grouped_data_iso_filt.columns:
+            print(
+                "Source didn't have ISO3 country codes, presumably because it works with ISO2 codes. Now adding ISO3 codes"
+            )
+            grouped_data_iso_filt = grouped_data_iso_filt.merge(
+                right=crba_country_list[["COUNTRY_ISO_2", "COUNTRY_ISO_3"]],
+                on="COUNTRY_ISO_2",
+                how="left",
+                indicator=False,
             )
 
         return grouped_data_iso_filt
@@ -754,11 +795,13 @@ class Cleanser:
                 print("No country name match")
             elif sum(subset_list) == 1:
                 # Retrieve the actual country name
-                country_name = country_name_list[subset_list].item()
+                country_name = country_name_list_temp[subset_list].item()
             else:
-                # Retrieve the actual country name
-                country_name = country_name_list[subset_list].iloc[0]
+                # Some country naes contain other country names (Nigeria contains Niger)
+                # Extract the longest string
+                country_name = max(country_name_list_temp[subset_list], key=len)
 
+            # Return result
             return country_name
 
         # Create footnote column that store footnotes

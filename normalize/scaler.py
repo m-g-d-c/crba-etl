@@ -15,6 +15,7 @@ def normalizer(
     maximum_score=10,
     log_info=False,
     country_iso_3_col="COUNTRY_ISO_3",
+    time_col="TIME_PERIOD",
 ):
     """Normalize the RAW_OBS_VALUES into indicator scores
 
@@ -51,18 +52,79 @@ def normalizer(
     Return:
     DataFrame with a new column called scaled_data_col_name containing the normalized (scaled) data
     """
+    print("\n Calling function 'scaler'... \n")
+    # Convert raw_ovs_value to numeric
+    cleansed_data[raw_data_col] = pd.to_numeric(cleansed_data[raw_data_col])
+
+    # Create the relevant dimension-subgroup (mostly for continuous variables. However, even though unusual, some vategorical variables also habe dimension values)
+    if sql_subset_query_string:
+        cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
+    else:
+        cleansed_data_subset = cleansed_data
+
+    # Exclude observations older than 10 years
+    cleansed_data_subset = cleansed_data_subset[cleansed_data_subset[time_col] >= 2010]
+
+    # In some sources, e.g. S-161 and S-186 country_iso_3 "FSM" has two data points
+    # Simply take one of the values so as to not break the pipeline
+    # Calculate number of country_iso_3 codes without 'FSM', to avoid applying the below code of
+    # Dropping duplicats in cases whre there is actual duplicates, and not only FSM
+    temp_grouped_series = (
+        cleansed_data_subset.loc[
+            cleansed_data_subset[country_iso_3_col] != "FSM",
+            [country_iso_3_col, raw_data_col],
+        ]
+        .groupby(country_iso_3_col, as_index=True)
+        .count()[raw_data_col]
+    )
+
+    # Calucate average number of countries in subgroup without FSM --> Should be 1
+    average_country_number = sum(temp_grouped_series) / len(temp_grouped_series)
+
+    if (
+        (
+            len(
+                cleansed_data_subset.loc[
+                    cleansed_data_subset[country_iso_3_col] == "FSM", country_iso_3_col
+                ]
+            )
+            == 2
+        )
+        & (average_country_number == 1)
+    ) | (
+        (
+            len(
+                cleansed_data_subset.loc[
+                    cleansed_data_subset[country_iso_3_col] == "FSM", country_iso_3_col
+                ]
+            )
+            == 2
+        )
+        & (
+            len(
+                cleansed_data_subset.loc[
+                    cleansed_data_subset[country_iso_3_col] != "FSM", country_iso_3_col
+                ]
+            )
+            == 194
+        )
+    ):
+        print(
+            "Dataset contains two values for Federated States of Micronesia (ISO3 code 'FSM'). Now taking the first value for FSM to proceed with normalizer."
+        )
+
+        # Drop duplicate
+        cleansed_data_subset = cleansed_data_subset.drop_duplicates(
+            subset=country_iso_3_col
+        )
+    # End of section to check if its a double-FSM (and only FSM-double)dataset
+
+    # Check that there aren't duplicates, which would imply that the dimension-subgroups have not been properly defined and a row in the subset is not unqiuely defined by the dimensions and country
+    assert (
+        sum(cleansed_data_subset[country_iso_3_col].duplicated()) == 0
+    ), f"There are duplicated countries ({cleansed_data_subset[cleansed_data_subset[country_iso_3_col].duplicated()]}) in the defined dimension-subgroup dataframe. It seems like the dimension-subgroup for the normalization has not been properly defined (most likely you forgot to specifiy a defining-dimension value."
+
     if variable_type != "Continuous variable":
-        # This is unusual, but some categorical variables also have dimensions
-        if sql_subset_query_string:
-            cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
-        else:
-            cleansed_data_subset = cleansed_data
-
-        # Check that there aren't duplicates, which would imply that the dimension-subgroups have not been properly defined and a row in the subset is not unqiuely defined by the dimensions and country
-        assert (
-            sum(cleansed_data_subset[country_iso_3_col].duplicated()) == 0
-        ), "There are duplicated countries in the defined dimension-subgroup dataframe. It seems like the dimension-subgroup for the normalization has not been properly defined (most likely you forgot to specifiy a defining-dimension value."
-
         # Build conditions array
         unique_values = cleansed_data_subset[raw_data_col].unique()
 
@@ -93,15 +155,30 @@ def normalizer(
         # store normalized scores in SCALED_OBS_VALUE
         cleansed_data_subset[scaled_data_col_name] = np.select(conditions, norm_values)
 
+        """
+        # For categorical variables, the value 0 also means No data, so update OBS_STATUS
+        cleansed_data_subset.loc[
+            (cleansed_data_subset[raw_data_col] == "0")
+            | (cleansed_data_subset[raw_data_col] == 0),
+            "OBS_STATUS",
+        ] = "O"
+        """
+
         # join normalized data to original dataframe
         cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
+
+        # For categorical variables, the value 0 also means No data, so update OBS_STATUS
+        cleansed_data.loc[
+            (cleansed_data[raw_data_col] == "0") | (cleansed_data[raw_data_col] == 0),
+            "OBS_STATUS",
+        ] = "O"
 
     elif variable_type == "Continuous variable":
         """
         Normalization requires min and max values within a certain group
         --> Out of subgroups that are defined by the dimension values
         one dimension subgroup must be selected
-        """
+
         # Define the dimension subgroup for which normalization is done:
         if sql_subset_query_string:
             cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
@@ -112,6 +189,7 @@ def normalizer(
         assert (
             sum(cleansed_data_subset[country_iso_3_col].duplicated()) == 0
         ), "There are duplicated countries in the defined dimension-subgroup dataframe. It seems like the dimension-subgroup for the normalization has not been properly defined (most likely you forgot to specifiy a defining-dimension value."
+        """
 
         # Determine basic descriptive statistics of the distribution that are required for the normalization
         min_val = np.nanmin(cleansed_data_subset[raw_data_col].astype("float"))
@@ -175,9 +253,51 @@ def normalizer(
         # Define the value range that is used for the scaling (normalization)
         tot_range = max_to_use - min_to_use
 
+        # Some distributions are so heavily right skewed (e.g. S-188), that tot_range is 0 (because max_to_use is q3 * iqr, but q3 is zero)
+        # To avoid division by zero (i.e. when tot_range = 0), put in a infitisemal small value
+        if tot_range == 0:
+            tot_range = 0.001
+            print(
+                "The total range was 0. This is probably because the distribution is too heavily skewed to the right. Now setting tot_range to 0.01 to allow for the algorithm to work."
+            )
+
         # Compute the normalized value of the raw data
         # Distinguish between indicators, whose value must be inverted
         if is_inverted == "inverted":
+            # Debug 03.12.20
+            print(f"Max Score: {maximum_score}")
+            print(f"Min to use: {min_to_use}")
+            print(f"tot range: {tot_range}")
+            print("Trying out apply function")
+            print(f"max value: {max_val}")
+            print(f"min value: {min_val}")
+            print(f"max to use: {max_to_use}")
+            print(f"q1: {q1}")
+            print(f"q3: {q3}")
+            print(f"iqr: {iqr}")
+
+            """
+            cleansed_data_subset[scaled_data_col_name] = (
+                cleansed_data_subset[raw_data_col]
+                .astype("float")
+                .apply(
+                    lambda x: round(
+                        maximum_score - maximum_score * (x - min_to_use) / tot_range
+                    )
+                    if x != "NaN"
+                    else np.nan  # some sources, e.g. S-161 have NaN as obs_raw_value
+                )
+            )
+            """
+
+            # print(scaled_series)
+
+            print("Printing scaled subset: \n \n \n")
+            # cleansed_data_subset[scaled_data_col_name] = scaled_series
+            # print(cleansed_data_subset)
+
+            ## stop debug 03.12.20
+            # # # THIS WHAT IS ORIGINALL WAS
             cleansed_data_subset[scaled_data_col_name] = round(
                 maximum_score
                 - maximum_score
@@ -185,6 +305,29 @@ def normalizer(
                 / tot_range,
                 2,
             )
+            # # # # # #
+            """
+            # DEBUG: Try it with assign
+            cleansed_data_subset = cleansed_data_subset.assign(
+                scaled_data_col_name=round(
+                    maximum_score
+                    - maximum_score
+                    * (cleansed_data_subset[raw_data_col].astype("float") - min_to_use)
+                    / tot_range,
+                    2,
+                )
+            )
+            
+            # DEBUG attempt it with lambda function
+            cleansed_data_subset[scaled_data_col_name] = (
+                cleansed_data_subset[raw_data_col]
+                .astype("float")
+                .apply(
+                    lambda x: round(
+                        maximum_score - maximum_score * (x - min_to_use) / tot_range
+                    )
+                )
+            )"""
 
         elif is_inverted == "not inverted":
             cleansed_data_subset[scaled_data_col_name] = round(
@@ -207,20 +350,39 @@ def normalizer(
             cleansed_data_subset[scaled_data_col_name] > 10, scaled_data_col_name
         ] = 10
 
+        # # # # #
+        print("Printing scaled subset after the normalisation to 0 and 10: \n \n \n")
+        # print(cleansed_data_subset)
+        # # # # #
+
         # join normalized data to original dataframe
         cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
 
-    # Create new column called "OBS_STATUS", which has value "O" if raw data is NaN
-    result = cleansed_data.assign(
-        OBS_STATUS=np.where(cleansed_data[raw_data_col].isnull(), "O", np.nan)
-    )
+        #### DELETE THIS COMMENT: I AM INDENTING THIS TO ONLY BE ART OF CONTINUOUS VARIABLES NOW, 05.12.20
+        # Create new column called "OBS_STATUS", which has value "O" if raw data is NaN
+        """ This is how it originally was
+        result = cleansed_data.assign(
+            OBS_STATUS=np.where(cleansed_data[raw_data_col].isnull(), "O", np.nan)
+        )
+        """
 
+        ######## ADDED THS IN PLACE OF THE CODE BELOW
+    cleansed_data.loc[
+        (cleansed_data["RAW_OBS_VALUE"].isna())
+        | (cleansed_data["RAW_OBS_VALUE"].isnull())
+        | (cleansed_data["RAW_OBS_VALUE"] == "NaN")
+        | (cleansed_data["RAW_OBS_VALUE"] == np.nan),
+        "OBS_STATUS",
+    ] = "O"
+
+    """ This is original ode 
     # For categorical variables, the value 0 also means No data, so update OBS_STATUS
     if variable_type != "Continuous variable":
         result.loc[
             (result["RAW_OBS_VALUE"] == "0") | (result["RAW_OBS_VALUE"] == 0),
             "OBS_STATUS",
         ] = "O"
+    """
 
     # Return result
-    return result
+    return cleansed_data
