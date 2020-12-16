@@ -409,6 +409,7 @@ class Cleanser:
         indicator_data_extraction_methodology_string,
         source_title_string,
         source_api_link_string,
+        attribute_unit_string,
         indicator_name_col="INDICATOR_NAME",
         index_name_col="INDICATOR_INDEX",
         issue_name_col="INDICATOR_ISSUE",
@@ -422,6 +423,7 @@ class Cleanser:
         crba_release_year_col="CRBA_RELEASE_YEAR",
         source_title_col="ATTR_SOURCE_TITLE",
         source_api_link_col="ATTR_API_ENDPOINT_URL",
+        attribute_unit_col="ATTR_UNIT_MEASURE",
         time_period_col="TIME_PERIOD",
     ):
         """Add several columns and fill cell values of dimensions and year column
@@ -523,6 +525,9 @@ class Cleanser:
 
         # Create column to indicate indicator explanation
         grouped_data_iso_filt[indicator_explanation_col] = indicator_explanation_string
+
+        # Create column to indicate unit measurement
+        grouped_data_iso_filt[attribute_unit_col] = attribute_unit_string
 
         # Create column to indicate dataa extraction methdology
         grouped_data_iso_filt[
@@ -824,6 +829,8 @@ class Cleanser:
         treaty_source_body,
         attr_rat_date_value="ATTR_RATIFICATION_DATE",
         attr_treaty_status="ATTR_TREATY_STATUS",
+        attr_encoding_labels="ATTR_ENCODING_LABELS",
+        attr_rat_details="ATTR_RATIFICATION_DETAILS",
         obs_raw_value="RAW_OBS_VALUE",
     ):
         """Encode un treaty data TO DO: CHANGE DOCUMENTATION
@@ -859,6 +866,12 @@ class Cleanser:
 
             # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
             encoding_label_string = "2=Yes, 1=No; as answer to the following question: Is the convention/ treaty in force as of today?"
+
+            # Convert signature date to datetime type
+            dataframe[attr_rat_date_value] = pd.to_datetime(
+                dataframe[attr_rat_date_value]
+            )
+
         elif treaty_source_body == "UN Treaties":
             # Define condition: Only countries which have signed are listed. The ones not listed will have a NaN value (as a result of the previous join)
             conditions = [
@@ -867,7 +880,34 @@ class Cleanser:
             ]
 
             # Create the encoding_lavel_string to be inserted in col ATTR_ENCODING_LABELS
-            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Has the country done one of the following things with the treaty: Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s)? Unless the date indicated is not followed by an encoding, it shows when the treaty was ratified. If it is followed by an encoding sign (e.g. 'a'), the encoding sign indicates its status."
+            encoding_label_string = "2=Yes, 1=No; as answer to the following question: Has the country done one of the following things with the treaty: Ratification, Acceptance(A), Approval(AA), Accession(a), Succession(d), Formal confirmation(c), Definitive signature(s)? S. ATTR_RATIFICATION_DETAILS to see if an/ which encoding applies."
+
+            # Pre-cleansing of date column
+            dataframe[attr_rat_date_value] = dataframe[attr_rat_date_value].apply(
+                lambda x: re.sub("\[|\]", "", x) if type(x) == str else x
+            )
+
+            # Create column to store ratification details
+            dataframe[attr_rat_details] = dataframe[attr_rat_date_value].apply(
+                lambda x: np.nan
+                if type(x) != str
+                else (
+                    re.findall("\s\D+$", x)[0]
+                    if len(re.findall("\s\D+$", x)) != 0
+                    else np.nan
+                )
+            )  # details are gien as one to two-digit character at the end of string
+
+            # Cleanse ratification date column to make it ready for datetime conversion
+            dataframe[attr_rat_date_value] = dataframe[attr_rat_date_value].apply(
+                lambda x: re.sub("\s\D+$", "", x) if type(x) == str else x
+            )
+
+            # Convert date column to datetime format
+            dataframe[attr_rat_date_value] = pd.to_datetime(
+                dataframe[attr_rat_date_value]
+            )
+
         elif treaty_source_body == "ICRC":
             # Define condition: Only countries which have signed are listed. The ones not listed will have a NaN value (as a result of the previous join)
             conditions = [
@@ -893,6 +933,6 @@ class Cleanser:
         )
 
         # create attr_encoding_raw_values
-        dataframe["ATTR_ENCODING_LABELS"] = encoding_label_string
+        dataframe[attr_encoding_labels] = encoding_label_string
 
         return dataframe
