@@ -1,3 +1,5 @@
+import datetime
+
 """
 Some indicators require a pre-processing before they can be stored as 
 meaningful raw data. 
@@ -341,6 +343,11 @@ for element in icrc_list:
     # Extract right columns
     dataframe = S_168_169_170[["Country", element[1]]]
 
+    # Convert datetime format
+    dataframe[element[1]] = dataframe[element[1]].apply(
+        lambda x: f"{x.year}-{x.month}-{x.day}" if isinstance(x, datetime.date) else x
+    )
+
     # Rename clumns
     dataframe = dataframe.rename(columns={element[1]: "ATTR_RATIFICATION_DATE"})
 
@@ -352,44 +359,8 @@ for element in icrc_list:
 
     # These indicators will probably require special attention/ a disting sort of pipeline
     # The below code works just fine, but still need to include the savings part --> Where to put this loop bit?
-    """ 
-    # Cleansing
-    dataframe = cleanse.Cleanser().rename_and_discard_columns(
-        raw_data=dataframe,
-        mapping_dictionary=mapping_dict,
-        final_sdmx_col_list=sdmx_df_columns_all
-    )
 
-    dataframe = cleanse.Cleanser().add_and_discard_countries(
-        grouped_data=dataframe,
-        crba_country_list=country_crba_list,
-        country_list_full = country_full_list
-    )
-
-    dataframe_cleansed = cleanse.Cleanser().encode_ilo_un_treaty_data(
-        dataframe = dataframe,
-        treaty_source_body = "UN Treaties"
-    )
-
-    cleanse.Cleanser().create_log_report(
-        cleansed_data=dataframe_cleansed
-    )
-    
-    # Normalizing section
-    dataframe_normalized = scaler.normalizer(
-        cleansed_data = dataframe_cleansed,
-        sql_subset_query_string=row["DIMENSION_VALUES_NORMALIZATION"],
-        # dim_cols=sdmx_df_columns_dims,
-        variable_type = row["VALUE_LABELS"],
-        is_inverted = row["INVERT_NORMALIZATION"],
-        whisker_factor=1.5,
-        raw_data_col="RAW_OBS_VALUE",
-        scaled_data_col_name="SCALED_OBS_VALUE",
-        maximum_score=10,
-        )
-    """
-
-    # # # # # # # CRIN treaties # # # # # # # # # # # # # # # # # # # #
+# # # # # # # CRIN treaties # # # # # # # # # # # # # # # # # # # #
 # # # # # # # S-131, S-193 # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # #  # # # # # # # # # # # # # # # # # # # #
 try:
@@ -661,6 +632,14 @@ S_153.Value = S_153.Value.apply(lambda x: re.sub(";<br>.+", "", x))
 
 # Cleanse target value variable (some encoding issues)
 S_153["TIME_PERIOD"] = 2020
+
+# Rename column so that it doesn't cause error downstream
+S_153 = S_153.rename(
+    columns={
+        "Sector": "sector_not_used",
+        "Subsector": "sub_sector_not_used",
+    }
+)
 
 # Save file
 S_153.to_csv(data_sources_staged_raw / "S-153_staged_raw.csv", sep=";")

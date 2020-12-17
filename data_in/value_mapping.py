@@ -22,19 +22,6 @@ value_mapper = {
         <target value> : <list of values to be converted into the target value> 
     }
 }
-
-This is a list of the columns in the final SDMX dataframe: 
-
-* "DIM_SEX",
-* "DIM_EDU_LEVEL",
-* "DIM_AGE",
-* "DIM_AGE_GROUP",
-* "DIM_MANAGEMENT_LEVEL",
-* "DIM_AREA_TYPE",
-* "DIM_QUANTILE",
-* "DIM_SDG_GOAL",
-* "DIM_OCU_TYPE",
-* "DIM_REP_TYPE",
 """
 
 value_mapper = {
@@ -57,10 +44,6 @@ value_mapper = {
         "PRE-PRIMARY EDUCATION": ["L02"],
         "PRIMARY EDUCATION": ["L1"],
         "_T": [""],
-    },
-    "DIM_AGE": {
-        "_T": ["_T"],
-        "SCHOOL_AGE_POPULATION": ["SCH_AGE_GROUP"],
     },
     "DIM_AGE_GROUP": {
         "_T": ["_T", "Total"],
@@ -89,6 +72,7 @@ value_mapper = {
         "<6 YEARS": ["<6Y"],
         "<8 YEARS": ["<8Y"],
         "5-59 MONTHS": ["M6T59"],
+        "SCHOOL_AGE_POPULATION": ["SCH_AGE_GROUP"],
     },
     "DIM_MANAGEMENT_LEVEL": {
         "OCU_MGMT_SENIOR": ["OCU_MGMT_SENIOR"],
@@ -142,6 +126,7 @@ value_mapper = {
         "13.1.2": ["['13.1.2']"],
         "13.1.3": ["['13.1.3']"],
         "15.3.1": ["['15.3.1']"],
+        "16.2.2": ["['16.2.2']"],
         "16.2.3": ["['16.2.3']"],
         "16.9.1": ["['16.9.1']"],
     },
@@ -169,7 +154,7 @@ value_mapper = {
         ],
         "Elementary occupations (isco-08)": ["isco08-9", "OCU_ISCO08_9"],
         "Not elsewhere classified (isco-08)": ["isco08-X", "OCU_ISCO08_X"],
-        "All occupations (isco-88)": ["isco88"],
+        "All occupations (isco-88)": ["isco88", "OCU_ISCO88_TOTAL"],
         "Armed forces (isco-88)": ["isco88-0"],
         "Legislators, senior officials and managers (isco-88)": ["isco88-1"],
         "Professionals (isco-88)": ["isco88-2"],
@@ -191,7 +176,7 @@ value_mapper = {
         "Oil and gas": ["Oil and gas"],
         "Mining": ["Mining"],
     },
-    "ATTR_UNIT_MEASURE": {
+    "ATTR_SOURCE_UNIT_MEASURE": {
         "PERCENT": ["PT", "PERCENT"],
         "HR": ["HR"],
         "CUR_LCU": ["CUR_LCU"],

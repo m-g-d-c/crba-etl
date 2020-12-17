@@ -177,10 +177,6 @@ dim_sex_mapper = {key: "DIM_SEX" for key in dim_sex_tuple}
 dim_edu_level_tuple = ("EDU_LEVEL", "DIM_EDU_LEVEL")
 dim_edu_level_mapper = {key: "DIM_EDU_LEVEL" for key in dim_edu_level_tuple}
 
-# Age
-dim_age_tuple = ("AGE", "DIM_AGE")
-dim_age_mapper = {key: "DIM_AGE" for key in dim_age_tuple}
-
 # Age group
 dim_age_group_tuple = (
     "AGEGROUP",
@@ -189,6 +185,8 @@ dim_age_group_tuple = (
     "Current age",
     "CDAGE:Age groups",
     "AGE:Current age",
+    "AGE",
+    "DIM_AGE",
 )
 dim_age_group_mapper = {key: "DIM_AGE_GROUP" for key in dim_age_group_tuple}
 
@@ -277,7 +275,7 @@ unit_measure_tuple = (
     "unit",
     "UNIT_MEASURE:Unit of measure",
 )
-unit_measure_mapper = {key: "ATTR_UNIT_MEASURE" for key in unit_measure_tuple}
+unit_measure_mapper = {key: "ATTR_SOURCE_UNIT_MEASURE" for key in unit_measure_tuple}
 
 # Observation status
 obs_status_tuple = ("OBS_STATUS", "Observation Status", "OBS_STATUS:Observation Status")
@@ -363,7 +361,6 @@ mapper_tuple_list = [
     obs_value_mapper,
     dim_sex_mapper,
     dim_edu_level_mapper,
-    dim_age_mapper,
     dim_age_group_mapper,
     dim_management_level_mapper,
     dim_area_type_mapper,
@@ -414,7 +411,6 @@ sdmx_df_columns_obs = ["RAW_OBS_VALUE"]
 sdmx_df_columns_dims = [
     "DIM_SEX",
     "DIM_EDU_LEVEL",
-    "DIM_AGE",
     "DIM_AGE_GROUP",
     "DIM_MANAGEMENT_LEVEL",
     "DIM_AREA_TYPE",
@@ -436,7 +432,7 @@ sdmx_df_columns_attr = [
     "ATTR_SOURCE_NOTE",
     "ATTR_SOURCE_INDICATOR_NOTE",
     "ATTR_UNIT_MEASURE",
-    "ATTR_SOURCE_OBS_STATUS",
+    "ATTR_SOURCE_UNIT_MEASURE" "ATTR_SOURCE_OBS_STATUS",
     "ATTR_SOURCE_COMMENTS",
     "ATTR_SDG_INDICATOR",
     "ATTR_SDG_INDICATOR_DESCRIPTION",

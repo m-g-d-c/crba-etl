@@ -105,10 +105,12 @@ categorical_indicators = [
     "S_150",
     "S_151",
     "S_152",
+    "S_164",
     "S_165",
     "S_172",
     "S_175",
     "S_176",
+    "S_178",
     "S_179",
     "S_213",
     "S_228",
@@ -131,6 +133,7 @@ numeric_indicators = [
     "S_196",
     "S_197",
 ]
+
 
 # Pre-process categorical indicators
 for file in categorical_indicators:
