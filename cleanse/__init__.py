@@ -258,11 +258,6 @@ class Cleanser:
             str
         )
 
-        # Debug here:
-        # print(available_attr_list)
-        # print(renamed_data)
-        # print(renamed_data[available_attr_list])
-
         renamed_data[available_attr_list] = renamed_data[available_attr_list].astype(
             str
         )
@@ -722,7 +717,11 @@ class Cleanser:
         cls, cleansed_data, raw_obs_col="RAW_OBS_VALUE", year_col="TIME_PERIOD"
     ):
         """
-        Calulcate how man NA values there are in a cleansed dataframe inthe column "RAW_OBS_VALUE
+        Calulcate how man NA values there are in a cleansed dataframe inthe column "RAW_OBS_VALUE and
+        delete duplicates, if any are present.
+
+        Note: If there are duplicates present, double check the soure/ code. Apart from very few
+        exceptional sources which have duplicate data in their raw data, this shouldn't be the case.
         """
         # Analyse the number of NA values and print it as log info for user
         percentage_na_values = cleansed_data[raw_obs_col].isna().sum() / len(
