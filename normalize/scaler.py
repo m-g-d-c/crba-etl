@@ -145,15 +145,6 @@ def normalizer(
         # store normalized scores in SCALED_OBS_VALUE
         cleansed_data_subset[scaled_data_col_name] = np.select(conditions, norm_values)
 
-        """
-        # For categorical variables, the value 0 also means No data, so update OBS_STATUS
-        cleansed_data_subset.loc[
-            (cleansed_data_subset[raw_data_col] == "0")
-            | (cleansed_data_subset[raw_data_col] == 0),
-            "OBS_STATUS",
-        ] = "O"
-        """
-
         # join normalized data to original dataframe
         cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
 
@@ -164,23 +155,6 @@ def normalizer(
         ] = "O"
 
     elif variable_type == "Continuous variable":
-        """
-        Normalization requires min and max values within a certain group
-        --> Out of subgroups that are defined by the dimension values
-        one dimension subgroup must be selected
-
-        # Define the dimension subgroup for which normalization is done:
-        if sql_subset_query_string:
-            cleansed_data_subset = cleansed_data.query(sql_subset_query_string)
-        else:
-            cleansed_data_subset = cleansed_data
-
-        # Check that there aren't duplicates, which would imply that the dimension-subgroups have not been properly defined and a row in the subset is not unqiuely defined by the dimensions and country
-        assert (
-            sum(cleansed_data_subset[country_iso_3_col].duplicated()) == 0
-        ), "There are duplicated countries in the defined dimension-subgroup dataframe. It seems like the dimension-subgroup for the normalization has not been properly defined (most likely you forgot to specifiy a defining-dimension value."
-        """
-
         # Determine basic descriptive statistics of the distribution that are required for the normalization
         min_val = np.nanmin(cleansed_data_subset[raw_data_col].astype("float"))
         max_val = np.nanmax(cleansed_data_subset[raw_data_col].astype("float"))
@@ -251,10 +225,8 @@ def normalizer(
                 "The total range was 0. This is probably because the distribution is too heavily skewed to the right. Now setting tot_range to 0.01 to allow for the algorithm to work."
             )
 
-        # Compute the normalized value of the raw data
-        # Distinguish between indicators, whose value must be inverted
-        if is_inverted == "inverted":
-            # Debug 03.12.20
+        # Log info
+        if log_info == True:
             print(" \n These are the values taken for the normalization: \n \n ")
             print(f"Max Score: {maximum_score}")
             print(f"Min to use: {min_to_use}")
@@ -267,28 +239,10 @@ def normalizer(
             print(f"q3: {q3}")
             print(f"iqr: {iqr}")
 
-            """
-            cleansed_data_subset[scaled_data_col_name] = (
-                cleansed_data_subset[raw_data_col]
-                .astype("float")
-                .apply(
-                    lambda x: round(
-                        maximum_score - maximum_score * (x - min_to_use) / tot_range
-                    )
-                    if x != "NaN"
-                    else np.nan  # some sources, e.g. S-161 have NaN as obs_raw_value
-                )
-            )
-            """
-
-            # print(scaled_series)
-
-            # print("Printing scaled subset: \n \n \n")
-            # cleansed_data_subset[scaled_data_col_name] = scaled_series
-            # print(cleansed_data_subset)
-
-            ## stop debug 03.12.20
-            # # # THIS WHAT IS ORIGINALL WAS
+        # Compute the normalized value of the raw data
+        # Distinguish between indicators, whose value must be inverted
+        if is_inverted == "inverted":
+            # # # Create SCALED_OBS_VALUE
             cleansed_data_subset[scaled_data_col_name] = round(
                 maximum_score
                 - maximum_score
@@ -296,31 +250,8 @@ def normalizer(
                 / tot_range,
                 2,
             )
-            # # # # # #
-            """
-            # DEBUG: Try it with assign
-            cleansed_data_subset = cleansed_data_subset.assign(
-                scaled_data_col_name=round(
-                    maximum_score
-                    - maximum_score
-                    * (cleansed_data_subset[raw_data_col].astype("float") - min_to_use)
-                    / tot_range,
-                    2,
-                )
-            )
-            
-            # DEBUG attempt it with lambda function
-            cleansed_data_subset[scaled_data_col_name] = (
-                cleansed_data_subset[raw_data_col]
-                .astype("float")
-                .apply(
-                    lambda x: round(
-                        maximum_score - maximum_score * (x - min_to_use) / tot_range
-                    )
-                )
-            )"""
-
         elif is_inverted == "not inverted":
+            # # # Create SCALED_OBS_VALUE
             cleansed_data_subset[scaled_data_col_name] = round(
                 maximum_score
                 * (cleansed_data_subset[raw_data_col].astype("float") - min_to_use)
@@ -341,23 +272,10 @@ def normalizer(
             cleansed_data_subset[scaled_data_col_name] > 10, scaled_data_col_name
         ] = 10
 
-        # # # # #
-        # print("Printing scaled subset after the normalisation to 0 and 10: \n \n \n")
-        # print(cleansed_data_subset)
-        # # # # #
-
         # join normalized data to original dataframe
         cleansed_data = cleansed_data.merge(right=cleansed_data_subset, how="outer")
 
-        #### DELETE THIS COMMENT: I AM INDENTING THIS TO ONLY BE ART OF CONTINUOUS VARIABLES NOW, 05.12.20
-        # Create new column called "OBS_STATUS", which has value "O" if raw data is NaN
-        """ This is how it originally was
-        result = cleansed_data.assign(
-            OBS_STATUS=np.where(cleansed_data[raw_data_col].isnull(), "O", np.nan)
-        )
-        """
-
-        ######## ADDED THS IN PLACE OF THE CODE BELOW
+    ######## AAdd OBS STATUS
     cleansed_data.loc[
         (cleansed_data["RAW_OBS_VALUE"].isna())
         | (cleansed_data["RAW_OBS_VALUE"].isnull())
@@ -365,15 +283,6 @@ def normalizer(
         | (cleansed_data["RAW_OBS_VALUE"] == np.nan),
         "OBS_STATUS",
     ] = "O"
-
-    """ This is original ode 
-    # For categorical variables, the value 0 also means No data, so update OBS_STATUS
-    if variable_type != "Continuous variable":
-        result.loc[
-            (result["RAW_OBS_VALUE"] == "0") | (result["RAW_OBS_VALUE"] == 0),
-            "OBS_STATUS",
-        ] = "O"
-    """
 
     # Return result
     return cleansed_data
