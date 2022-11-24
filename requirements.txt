@@ -1,6 +1,14 @@
 requests
 pandas
 bs4
-sqlite3
-io
-
+openpyxl
+pandas_datareader
+black
+numpy
+selenium
+html5lib
+rope
+xlrd
+nltk
+matplotlib
+webdriver-manager

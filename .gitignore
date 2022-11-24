@@ -1,4 +1,5 @@
 
+
 # Created by https://www.toptal.com/developers/gitignore/api/windows,jupyternotebooks,microsoftoffice
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,jupyternotebooks,microsoftoffice
 
@@ -11,6 +12,37 @@
 
 # python cache (created by imports executed in notebooks)
 __pycache__
+*/__pycache__/*
+*.pyc
+
+# Debug file used for temporary debugging
+debug_file.py
+
+# Gecko driver log file
+*.log
+
+# exclude all archive folders
+z_archive
+data/*/z_archive
+
+# exclude tmee data
+tmee/data_raw/*
+tmee/data_transformed/*
+/tmee/data_raw/*
+/tmee/data_transformed/*
+
+
+# Exclude all data output by the ETL script
+data_out/
+# this is legacy, because the data folder has been renamed to data_out
+data/*
+**.csv
+
+# Exclude data_dictionary folder (becaue moved file to data_in)
+data_dictionary
+
+# exclude folder created by visual studio 2019
+.vs/
 
 # IPython
 profile_default/
@@ -67,3 +99,67 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,jupyternotebooks,microsoftoffice
+data/data_normalized/S_101_normalized.xlsx
+data/data_normalized/S_101_normalized.xlsx
+data/data_raw/S-155, S-156 nrgi_data.csv
+data/data_raw/S-166 Registering Property.xlsx
+data/data_raw/S-167 Pct_IP_CommunityLands.zip
+data/data_raw/S-189 idmc_displacement_all_dataset.xlsx
+data/data_raw/S-3-Ratifications_20200828165211.xls
+data/data_raw/S-37, S-38, S-39.xlsx
+data/data_raw/S-49 WORLD_Dataset_Poverty_3.9.15_0/WORLD Poverty Public Use Data Dictionary.pdf
+data/data_raw/S-49 WORLD_Dataset_Poverty_3.9.15_0/WORLD_Dataset_Poverty_3.9.15.dta
+data/data_raw/S-49 WORLD_Dataset_Poverty_3.9.15_0/WORLD_Dataset_Poverty_3.9.15.xls
+data/data_raw/S-59-Ratifications_20200828165032.xls
+data/data_raw/S-59-Ratifications_20200828165128.xls
+data/data_raw/S-59-Ratifications_20200828165147.xls
+data/data_raw/S_10, S_13, S_36, S_45/Childhood Public Use Data Dictionary_4.16.15.pdf
+data/data_raw/S_10, S_13, S_36, S_45/WORLD_Dataset_Childhood_4.16.15.dta
+data/data_raw/S_10, S_13, S_36, S_45/WORLD_Dataset_Childhood_4.16.15.xls
+data/data_raw/S_10, S_13, S_36, S_45/WORLD_Dataset_Childhood_4.16.15.zip
+data/data_raw/S_40, S_41, S_63, S_64, S_65, S_66/WORLD Adult Labor Public Use Data Dictionary_9.17.2018.pdf
+data/data_raw/S_40, S_41, S_63, S_64, S_65, S_66/WORLD_Dataset_Adult_Labor_9.17.2018.dta
+data/data_raw/S_40, S_41, S_63, S_64, S_65, S_66/WORLD_Dataset_Adult_Labor_9.17.2018.xls
+data/data_raw/S_40, S_41, S_63, S_64, S_65, S_66/WORLD_Dataset_Adult_Labor_9.17.2018_0.zip
+data/data_raw/S_42, S_43, S_44/Workplace Discrimination Public Use Data Dictionary_13July20.pdf
+data/data_raw/S_42, S_43, S_44/WORLD_Dataset_Discrimination_at_Work_14July20_2.zip
+data/data_raw/S_42, S_43, S_44/WORLD_discrimination_at_work.dta
+data/data_raw/S_42, S_43, S_44/WORLD_discrimination_at_work.xls
+data/data_raw/S_8, S_9/All WOrld Policy Analysis Centre Data Catalogues.pdf
+data/data_raw/S_8, S_9/Child Labor Public Use Data Dictionary 10.28.19.pdf
+data/data_raw/S_8, S_9/WORLD_child_labor.dta
+data/data_raw/S_8, S_9/WORLD_child_labor.xls
+data/data_raw/S_8, S_9/WORLD_Dataset_Child_Labor_10.28.19.zip
+# ignore folder tests
+tests
+
+# Ignore some of my noteboooks prototypes
+API_calls.ipynb
+column_mapper.ipynb
+proto_sqlite.ipynb
+prototype_API_Transform.ipynb
+wrap_API_calls.ipynb
+wrap_API_calls2.ipynb
+proto_extract_transform.ipynb
+excel_tmee.ipynb
+
+
+# ignore folder below (all excel files)
+populate_data_dictionary
+
+# ignore some versioning excel files
+indicator_dictionary_TM_v01.xlsx
+
+# Ignore history download folder
+noYreq
+extractTest
+loopTest
+older
+
+# End of https://www.toptal.com/developers/gitignore/api/windows,jupyternotebooks,microsoftoffice
+
+!tmee/data_raw/
+tmee/data_raw/*
+
+!tmee/data_transformed/
+tmee/data_transformed/*
