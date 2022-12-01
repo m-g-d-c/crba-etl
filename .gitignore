@@ -61,7 +61,8 @@ ipython_config.py
 Backup of *.doc*
 
 # Excel temporary
-~$*.xls*
+~$*.xls* 
+.xlsx#
 
 # Excel Backup File
 *.xlk

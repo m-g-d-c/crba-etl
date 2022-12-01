@@ -3,6 +3,9 @@ import datetime
 import numpy as np
 import re
 from statistics import median
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class Cleanser:
@@ -24,7 +27,7 @@ class Cleanser:
         Return:
         pd.DataFrame in which values of display_value_col are of numeric type and contain only number
         """
-        print("\n Calling function 'extract_who_raw_data'...")
+        #log.info("\n Calling function 'extract_who_raw_data'...")
         # Check if we are dealing with a WHO source, which habe the column "Display Value"
         if "Display Value" in raw_data.columns:
             if variable_type == "Continuous variable":
@@ -65,7 +68,7 @@ class Cleanser:
         Return:
         pd.DataFrame containing only (renamed) columns as contained in the final SDMX dataframe
         """
-        print("\n Calling function 'rename_and_discard_columns'...")
+        #log.info("\n Calling function 'rename_and_discard_columns'...")
 
         # 1. Rename columns
         raw_data = raw_data.rename(columns=mapping_dictionary)
@@ -86,7 +89,7 @@ class Cleanser:
                 raw_data["COUNTRY_ISO_3"].apply(lambda x: len(str(x))).quantile(q=0.25)
                 < 2.5
             ):
-                print(
+                log.info(
                     "The column REF_AREA has been renamed into COUNTRY_ISO_3, but should be COUNTRY_ISO_2. Now renaming it into COUNTRY_ISO_2"
                 )
                 raw_data = raw_data.rename(columns={"COUNTRY_ISO_3": "COUNTRY_ISO_2"})
@@ -97,7 +100,7 @@ class Cleanser:
         # Make sure the column name is mapped correctly
         try:
             if "OCU_ISCO08_TOTAL" in raw_data["DIM_MANAGEMENT_LEVEL"].unique():
-                print(
+                log.info(
                     "The column OCU has been renamed into DIM_MANAGEMENT_LEVEL, but should be DIM_OCU_TYPE. Now renaming it into DIM_OCU_TYPE"
                 )
                 raw_data = raw_data.rename(
@@ -109,7 +112,7 @@ class Cleanser:
         # One UNICEF source S-221 has a different data structure, which requires extracting the ISO3 code
         try:
             if "CAF: Central African Republic" in raw_data["COUNTRY_ISO_3"].unique():
-                print(
+                log.info(
                     "The column COUNTRY_ISO_3 is of a different data structure. This should be the case only for S-221. Now extracting the actual ISO3 code from the column"
                 )
                 raw_data["COUNTRY_ISO_3"] = raw_data["COUNTRY_ISO_3"].apply(
@@ -129,10 +132,10 @@ class Cleanser:
         Some datasources, e.g. S-161, have the string 'NaN' rather than actual
         NaN values. This function converts them.
         """
-        print("\n Calling function 'convert_nan_strings_into_nan'...")
+        #log.info("\n Calling function 'convert_nan_strings_into_nan'...")
         # Check if 'NaN' is in string
         if "NaN" in dataframe[raw_data_col].unique():
-            print(
+            log.info(
                 "raw_obs_col contains 'NaN' strings. Converting them to actual np.nan values."
             )
             # Convert values
@@ -163,7 +166,7 @@ class Cleanser:
         Return: Pandas Dataframe with year_col as integer values
         """
         # Log info for user
-        print("\n Calling function 'extract_year_from_timeperiod'...")
+        #log.info("\n Calling function 'extract_year_from_timeperiod'...")
 
         # Determine if the time period variable is normal, or of type e.g. "2012 - 2014"
         is_time_period_dash = re.search("-", str(dataframe[year_col].unique()))
@@ -197,7 +200,7 @@ class Cleanser:
             )
 
             # Log info for user
-            print(
+            log.info(
                 "\n TIME_PERIOD column contained time periods (no atomic years). Successfully extrated year. "
             )
         elif is_time_period_rgi:
@@ -236,7 +239,7 @@ class Cleanser:
         Return:
         pd.DataFrame with only one observation per country (and dimension subgroup, if a raw dataframe contains dimensions as part of a primary composite key)
         """
-        print("\n Calling function 'retrieve_latest_observation'...")
+        #log.info("\n Calling function 'retrieve_latest_observation'...")
 
         # Define available dimensions in the dataset
         available_dims_list = [col for col in renamed_data.columns if col in dim_cols]
@@ -315,7 +318,7 @@ class Cleanser:
         # TO DO: Refactor code; This function can be set up more elegantly now,
         # since we renamed all country cols before and it is clear which country
         # column is in the dataframe
-        print("\n Calling function 'add_and_discard_countries'...")
+        #log.info("\n Calling function 'add_and_discard_countries'...")
 
         # Determine intersection of country key col in CRBA country list and raw data
         country_col_right_join = [
@@ -374,7 +377,7 @@ class Cleanser:
 
         # Force COUNTY_ISO_3 codes to be present, this is for sources which work only with ISO2 country codes
         if "COUNTRY_ISO_3" not in grouped_data_iso_filt.columns:
-            print(
+            log.info(
                 "Source didn't have ISO3 country codes, presumably because it works with ISO2 codes. Now adding ISO3 codes"
             )
             grouped_data_iso_filt = grouped_data_iso_filt.merge(
@@ -465,7 +468,7 @@ class Cleanser:
         Dataframe with added columns and filled in cell values
 
         """
-        print("\n Calling function 'add_cols_fill_cells'...")
+        #log.info("\n Calling function 'add_cols_fill_cells'...")
 
         # # # Fill in _T and year values
         # Define available dimensions in the dataset
@@ -544,7 +547,7 @@ class Cleanser:
     def map_values(cls, cleansed_data, value_mapping_dict):
         """Map column values (assign consistent values)
 
-        DIfferent sources may have different values for a certain variable, but may actally mean the
+        Different sources may have different values for a certain variable, but may actually mean the
         same thing,. For example, in one data source the value "male" in "Gender" migh be "m", in
         others it might be "mle".
 
@@ -565,7 +568,7 @@ class Cleanser:
         Dataframe with converted cell values as stipulated in value_mapping_dict
 
         """
-        print("\n Calling function 'map_values'...")
+        #log.info("\n Calling function 'map_values'...")
 
         # Loop through all possible columns as defined for the final SDMX structure
         for key in value_mapping_dict:
@@ -600,11 +603,12 @@ class Cleanser:
                 )
 
                 # log info for user
-                print("\n Successfully mapped values of column: {}".format(key))
+                log.info("\n Successfully mapped values of column: {}".format(key))
 
             # If column is not presnt (or if there are other issues)
+   
             except:
-                print(
+                log.info(
                     "Values of column: {} couldn't be mapped. If column {} is present, there is an error with the code. ".format(
                         key, key
                     )
@@ -662,7 +666,7 @@ class Cleanser:
         Dataframe with encoded categorical, raw data and an added column ATTR_ENCODING_LABELS containing encoding labels
         """
 
-        print("\n Calling function 'encode_categorical_variables'...")
+        #log.info("\n Calling function 'encode_categorical_variables'...")
 
         if encoding_string != "Continuous variable":
             # Split string into mapping pairs
@@ -672,7 +676,7 @@ class Cleanser:
             mapping_pairs_listed = []
             for pair in mapping_pairs:
                 mapping_pairs_listed += [re.split(assign_character, pair)]
-                # print(mapping_pairs_listed)
+                # log.info(mapping_pairs_listed)
 
             # Define conditions
             raw_values = []
@@ -728,7 +732,7 @@ class Cleanser:
             cleansed_data[raw_obs_col]
         )
 
-        print(
+        log.info(
             "Cleansing done. This is some basic information about the data: \n \n There are {} rows in the dataframe and {}% have a NA-value in the column 'OBS_RAW_VALUE".format(
                 len(cleansed_data[raw_obs_col]),
                 round(percentage_na_values * 100, 2),
@@ -743,7 +747,7 @@ class Cleanser:
         # Create summary statistics for the year column
         summary_year = cleansed_data[year_col].describe()
 
-        print(
+        log.info(
             "\n \n This is the summary of the column 'TIME_PERIOD': {}".format(
                 summary_year
             )
@@ -751,7 +755,7 @@ class Cleanser:
 
         # Check if there are duplicate rows. Except for source S-166, this shouldn't be the case
         if cleansed_data.duplicated().any() == True:
-            print(
+            log.info(
                 "WARNING: There are {} duplicate rows in the cleansed dataframe. Apart from soure S-166, this should not be the case. Check if you have mapped all columns (specifically the dimensions) and values. Now dropping duplicate rows and returning dataframe without duplicates.".format(
                     sum(cleansed_data.duplicated())
                 )
@@ -796,7 +800,8 @@ class Cleanser:
 
             # Sometimes several country names match, but we need exactly one
             if sum(subset_list) == 0:
-                print("No country name match")
+                log.info("No country name match")
+                country_name = None
             elif sum(subset_list) == 1:
                 # Retrieve the actual country name
                 country_name = country_name_list_temp[subset_list].item()
@@ -853,7 +858,7 @@ class Cleanser:
         Return:
         Pandas DataFrame with RAW_OBS_VALUE added, containing encoded values and a column added containig decoding instructions.
         """
-        print("\n Calling function 'encode_ilo_un_treaty_data'...")
+        #log.info("\n Calling function 'encode_ilo_un_treaty_data'...")
 
         # ILO NORMLEX and UN Treaties raw data is different, so require different code blocks
         if treaty_source_body == "ILO NORMLEX":

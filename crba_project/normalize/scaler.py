@@ -52,7 +52,7 @@ def normalizer(
     Return:
     DataFrame with a new column called scaled_data_col_name containing the normalized (scaled) data
     """
-    print("\n Calling function 'scaler'... \n")
+    #print("\n Calling function 'scaler'... \n")
     # Convert raw_ovs_value to numeric
     cleansed_data[raw_data_col] = pd.to_numeric(cleansed_data[raw_data_col])
 
@@ -130,7 +130,7 @@ def normalizer(
         divisor = 1
 
         # In the encoding, the value 0 means "No Data/ no reponse/ not answered/ ..."
-        if (0 in unique_values) | ("0" in unique_values):
+        if (0 in list(unique_values)) | ("0" in list(unique_values)):
             norm_values += [
                 np.nan
             ]  # This is into what "0" is encoded into OBS_SCALED_VALUE
