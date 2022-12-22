@@ -1,71 +1,18 @@
-from crba_project.extractor import Extractor
 import pandas as pd
-from crba_project import cleanse
-from normalize import scaler 
+
+from crba_project.cleanse import Cleanser
+from crba_project.extractor import Extractor
+from crba_project.normalize import scaler
 
 class WPA_Extractor(Extractor):
      
-    
-    def __init__(
-        self,
-        config,
-        SOURCE_ID,
-        SOURCE_TYPE,
-        ENDPOINT_URL,
-        SOURCE_TITLE,
-        VALUE_LABELS,
-        INDICATOR_NAME_y,
-        INDEX,
-        ISSUE,
-        CATEGORY,
-        INDICATOR_CODE,
-        ADDRESS,
-        SOURCE_BODY,
-        INDICATOR_DESCRIPTION,
-        INDICATOR_EXPLANATION,
-        EXTRACTION_METHODOLOGY,
-        UNIT_MEASURE,
-        VALUE_ENCODING,
-        DIMENSION_VALUES_NORMALIZATION,
-        INVERT_NORMALIZATION,
-        INDICATOR_ID,
-        NA_ENCODING,
-        WPA_OBS_RAW_COL,
-        WPA_YEAR_COL,
-        **kwarg
-    ):
-        """
-        Maybe use:
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
-        less readable but shorter code
-        """
-        self.config = config
-        self.source_id = SOURCE_ID
-        self.source_type = SOURCE_TYPE
-        self.source_titel = SOURCE_TITLE
-        self.endpoint = ENDPOINT_URL
-        self.value_labels = VALUE_LABELS
-        self.indicator_name_y = INDICATOR_NAME_y
-        self.index = INDEX
-        self.issue = ISSUE
-        self.category = CATEGORY
-        self.indicator_code = INDICATOR_CODE
-        self.address = ADDRESS
-        self.source_body = SOURCE_BODY
-        self.indicator_description = INDICATOR_DESCRIPTION
-        self.indicator_explanation = INDICATOR_EXPLANATION
-        self.extraction_methodology = EXTRACTION_METHODOLOGY
-        self.unit_measure = UNIT_MEASURE
-        self.value_encoding = VALUE_ENCODING
-        self.dimension_values_normalization = DIMENSION_VALUES_NORMALIZATION
-        self.invert_normalization = INVERT_NORMALIZATION
-        self.indicator_id = INDICATOR_ID
-        self.na_encoding = NA_ENCODING
-        self.wpa_obs_raw_col = WPA_OBS_RAW_COL
+    def __init__(self,config, WPA_YEAR_COL,WPA_OBS_RAW_COL,**kwarg):
+        super().__init__(config,**kwarg)
+
         self.wpa_year_col = WPA_YEAR_COL
+        self.wpa_obs_raw_col = WPA_OBS_RAW_COL
     
-    def data(self):
+    def _download(self):
         if not hasattr(WPA_Extractor, 'wpa_combined') or WPA_Extractor.wpa_combined is None:
             # 1. Create a flat file of all WPA sources
             # Read and join all world policy analysis centre data
@@ -106,21 +53,18 @@ class WPA_Extractor(Extractor):
             #WPA_Extractor.wpa_combined_list = pd.concat(wpa_combined_list,
             #axis=1, # Concat columns not rows aka merge 
             #)
-        
         return WPA_Extractor.wpa_combined
 
-    def _extract(self):
+    def _transform(self):
 
-        #TODO https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
-        dataframe = self.data() #[['iso3', self.wpa_obs_raw_col]] A subset in probably not needed?!?
-        dataframe['TIME_PERIOD'] = self.wpa_year_col 
-
+        self.dataframe['TIME_PERIOD'] = self.wpa_year_col 
+        self.dataframe = self.dataframe[['iso3', self.wpa_obs_raw_col]] 
         #print(dataframe.head(30))
 
         # Save dataframe
-        dataframe.to_csv(
-            self.config.data_sources_raw / str(self.source_id + "_raw.csv"),
-            sep = ";")
+        #self.dataframe.to_csv(
+        #    self.config.data_sources_raw / str(self.source_id + "_raw.csv"),
+        #    sep = ";")
         #except:
         #print("There was an issue with source {}".format(self.source_id ))
         
@@ -130,20 +74,20 @@ class WPA_Extractor(Extractor):
         # Cleansing 
         #print("\n - - - - - \n Cleansing source {} \n".format(self.source_id ))
 
-        dataframe = cleanse.Cleanser().rename_and_discard_columns(
-            raw_data=dataframe,
+        self.dataframe = Cleanser().rename_and_discard_columns(
+            raw_data=self.dataframe,
             mapping_dictionary=self.config.mapping_dict,
             final_sdmx_col_list=self.config.sdmx_df_columns_all
         )
 
-        dataframe = cleanse.Cleanser().add_and_discard_countries(
-            grouped_data=dataframe,
+        self.dataframe = Cleanser().add_and_discard_countries(
+            grouped_data=self.dataframe,
             crba_country_list=self.config.country_crba_list,
             country_list_full = self.config.country_full_list
         )
 
-        dataframe = cleanse.Cleanser().add_cols_fill_cells(
-            grouped_data_iso_filt=dataframe,
+        self.dataframe = Cleanser().add_cols_fill_cells(
+            grouped_data_iso_filt=self.dataframe,
             dim_cols=self.config.sdmx_df_columns_dims,
             time_cols=self.config.sdmx_df_columns_time,
             indicator_name_string=self.indicator_name_y,
@@ -161,14 +105,14 @@ class WPA_Extractor(Extractor):
             attribute_unit_string=self.unit_measure
         )
 
-        dataframe_cleansed = cleanse.Cleanser().encode_categorical_variables(
-            dataframe = dataframe,
+        self.dataframe_cleansed = Cleanser().encode_categorical_variables(
+            dataframe = self.dataframe,
             encoding_string = self.value_encoding,
             encoding_labels = self.value_labels
         )
 
-        dataframe_cleansed = cleanse.Cleanser().create_log_report_delete_duplicates(
-            cleansed_data=dataframe_cleansed
+        self.dataframe_cleansed = Cleanser().create_log_report_delete_duplicates(
+            cleansed_data=self.dataframe_cleansed
         )
 
         
@@ -179,13 +123,13 @@ class WPA_Extractor(Extractor):
         
 
         # Save cleansed data
-        dataframe_cleansed.to_csv(
-            self.config.data_sources_cleansed / str(self.source_id + "_cleansed.csv"),
-            sep = ";")
+        #self.dataframe_cleansed.to_csv(
+        #    self.config.data_sources_cleansed / str(self.source_id + "_cleansed.csv"),
+        #    sep = ";")
 
         # Normalizing
-        dataframe_normalized = scaler.normalizer(
-            cleansed_data = dataframe_cleansed,
+        self.dataframe_normalized = scaler.normalizer(
+            cleansed_data = self.dataframe_cleansed,
             sql_subset_query_string=self.dimension_values_normalization,
             # dim_cols=sdmx_df_columns_dims,
             variable_type = self.value_labels,
@@ -196,12 +140,12 @@ class WPA_Extractor(Extractor):
             maximum_score=10,
             )
 
-        dataframe_normalized.to_csv(
-            self.config.data_sources_normalized / str(self.indicator_id + '_' + self.source_id + '_' +self.indicator_code + "_normalized.csv"),
-            sep = ";")
+        #self.dataframe_normalized.to_csv(
+        #    self.config.data_sources_normalized / str(self.indicator_id + '_' + self.source_id + '_' +self.indicator_code + "_normalized.csv"),
+        #    sep = ";")
 
         # Append dataframe to combined dataframe
         #combined_normalized_csv = combined_normalized_csv.append(
         #    other = dataframe_normalized
         #)
-        return dataframe_normalized
+        return self.dataframe_normalized

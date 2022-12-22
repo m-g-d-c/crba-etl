@@ -1,13 +1,24 @@
-from abc import ABC
-import requests
-import pandas as pd
+from abc import ABC, abstractmethod
 import logging
 
-log = logging .getLogger(__name__)
+import requests
+import pandas as pd
 
+from crba_project.conf import Config
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.ERROR)
+
+class ExtractionError(Exception):
+    def __init__(self, message, SOURCE_ID):
+        super().__init__(message)
+        self.source_id = SOURCE_ID
+    pass
 
 class Extractor(ABC):
-
+    """
+    Maybe subcalss from Pandas Dataframe?!?!?
+    """
     @classmethod
     def api_request(cls, address, params=None, headers=None):
         """
@@ -18,24 +29,97 @@ class Extractor(ABC):
         response.raise_for_status()
         # return response object
         return response
+    
+    @abstractmethod
+    def __init__(
+        self,
+        config:Config,
+        SOURCE_ID,
+        SOURCE_TYPE,
+        ENDPOINT_URL,
+        SOURCE_TITLE,
+        VALUE_LABELS,
+        INDICATOR_NAME_y,
+        INDEX,
+        ISSUE,
+        CATEGORY,
+        INDICATOR_CODE,
+        ADDRESS,
+        SOURCE_BODY,
+        INDICATOR_DESCRIPTION,
+        INDICATOR_EXPLANATION,
+        EXTRACTION_METHODOLOGY,
+        UNIT_MEASURE,
+        VALUE_ENCODING,
+        DIMENSION_VALUES_NORMALIZATION,
+        INVERT_NORMALIZATION,
+        INDICATOR_ID, **kwargs
+    ):
 
-    def data(self):
-        return pd.DataFrame()
-    def extract(self):
+        self.config = config
+        self.source_id = SOURCE_ID
+        self.source_type = SOURCE_TYPE
+        self.source_titel = SOURCE_TITLE
+        self.endpoint = ENDPOINT_URL
+        self.value_labels = VALUE_LABELS
+        self.indicator_name_y = INDICATOR_NAME_y
+        self.index = INDEX
+        self.issue = ISSUE
+        self.category = CATEGORY
+        self.indicator_code = INDICATOR_CODE
+        self.address = ADDRESS
+        self.source_body = SOURCE_BODY
+        self.indicator_description = INDICATOR_DESCRIPTION
+        self.indicator_explanation = INDICATOR_EXPLANATION
+        self.extraction_methodology = EXTRACTION_METHODOLOGY
+        self.unit_measure = UNIT_MEASURE
+        self.value_encoding = VALUE_ENCODING
+        self.dimension_values_normalization = DIMENSION_VALUES_NORMALIZATION
+        self.invert_normalization = INVERT_NORMALIZATION
+        self.indicator_id = INDICATOR_ID
+
+                    
+
+    def download(self):
+        self.dataframe = self._download()
+        
+        #TODO establish Great Expectation to validate sources  
+        assert len(self.dataframe) > 0, "The source has not provided any data  "
+        return self
+
+    def transform(self):
+        ##TODO do not reassign Dataframe but instead edit in place
+        self.dataframe = self._transform()
+        return self
+
+    def get(self):
+        """
+        Good pattern is to only create new columns but not delete old ones. 
+        While the data is small enough this pattern helps debugging
+        """
         try:
-            df = self._extract()
-            return df
+            self.download() \
+                .transform()
+            return self.dataframe
         except Exception as ex:
-            raise ExtractionError(f"Source {self.source_id} failed to extract")
+            #Store all Data processed until now to help debugging
+            if hasattr(self,'dataframe'):
+                self.dataframe.to_csv(
+                    self.config.error_folder / str(self.source_id + ".csv"),
+                    sep = ";")
+            raise ExtractionError(
+                f"Source {self.source_id} failed to extract cause of: {str(ex)}",self.source_id
+            ) from ex
+            
 
-class ExtractionError(Exception):
-    pass
 
 
 class EmptyExtractor(Extractor):
-    
-    def __init__(self,SOURCE_ID,**kwarg):
-        self.source_id = SOURCE_ID
+    def __init__(self, SOURCE_ID, **kwarg):
+       self.source_id = SOURCE_ID
 
-    def _extract(self):
-        return None
+    def _download(self):
+        raise NotImplementedError(f"For {self.source_id} no download method defined")
+
+    def _transform(self):
+        raise NotImplementedError(f"For {self.source_id} no transformations are defined")

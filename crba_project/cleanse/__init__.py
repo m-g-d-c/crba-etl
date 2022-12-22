@@ -1,9 +1,12 @@
+import logging
+
+import warnings
 import pandas as pd
 import datetime
 import numpy as np
 import re
 from statistics import median
-import logging
+
 
 log = logging.getLogger(__name__)
 
@@ -134,7 +137,9 @@ class Cleanser:
         """
         #log.info("\n Calling function 'convert_nan_strings_into_nan'...")
         # Check if 'NaN' is in string
-        if "NaN" in dataframe[raw_data_col].unique():
+        if raw_data_col not in  dataframe.columns: 
+            pass
+        if "NaN" in set(dataframe[raw_data_col]):
             log.info(
                 "raw_obs_col contains 'NaN' strings. Converting them to actual np.nan values."
             )
@@ -343,14 +348,19 @@ class Cleanser:
             )
         elif (med_country_col_len > 1.5) & (med_country_col_len < 3.5):
             # Column in raw dataframe is ISO2 or ISO3, so can just join directly
-            grouped_data_iso_filt = grouped_data.merge(
-                right=crba_country_list[[country_col_right_join]],
-                how="right",
-                on=country_col_right_join,
-                indicator=True,
-                validate="many_to_one",
-                suffixes=("_source_data", None),
-            )
+            with warnings.catch_warnings():
+                #TODO
+                #DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+                #grouped_data_iso_filt = grouped_data.merge
+                warnings.simplefilter("ignore")
+                grouped_data_iso_filt = grouped_data.merge(
+                    right=crba_country_list[[country_col_right_join]],
+                    how="right",
+                    on=country_col_right_join,
+                    indicator=True,
+                    validate="many_to_one",
+                    suffixes=("_source_data", None),
+                )
         elif med_country_col_len > 3.5:
             # The raw data only contains country names. Assign ISO codes to these country names.
             # Source S-155 and S-156 Contain leading whitespaces. Delete those, or else join will fail
@@ -801,7 +811,7 @@ class Cleanser:
             # Sometimes several country names match, but we need exactly one
             if sum(subset_list) == 0:
                 log.info("No country name match")
-                country_name = None
+                country_name = ""
             elif sum(subset_list) == 1:
                 # Retrieve the actual country name
                 country_name = country_name_list_temp[subset_list].item()

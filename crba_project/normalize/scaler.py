@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import datetime
 
 
 def normalizer(
@@ -110,9 +109,11 @@ def normalizer(
     cleansed_data_subset = cleansed_data_subset[cleansed_data_subset[time_col] >= 2010]
 
     # Check that there aren't duplicates, which would imply that the dimension-subgroups have not been properly defined and a row in the subset is not unqiuely defined by the dimensions and country
+    # If to establish Breakpoint 
+    
     assert (
         sum(cleansed_data_subset[country_iso_3_col].duplicated()) == 0
-    ), f"There are duplicated countries ({cleansed_data_subset[cleansed_data_subset[country_iso_3_col].duplicated()]}) in the defined dimension-subgroup dataframe. It seems like the dimension-subgroup for the normalization has not been properly defined (most likely you forgot to specifiy a defining-dimension value."
+    ), f"There are duplicated countries in the defined dimension-subgroup dataframe."
 
     if variable_type != "Continuous variable":
         # Build conditions array

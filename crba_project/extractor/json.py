@@ -1,69 +1,20 @@
-from crba_project import cleanse
-from crba_project.extractor import Extractor
 import pandas as pd
 import requests
-from normalize import scaler ##TODO Understand
+
+from crba_project.cleanse import Cleanser
+from crba_project.extractor import Extractor
+from crba_project.normalize import scaler
+
 
 class DefaultJsonExtractor(Extractor):
 
-    def __init__(
-        self,
-        config,
-        SOURCE_ID,
-        SOURCE_TYPE,
-        ENDPOINT_URL,
-        SOURCE_TITLE,
-        VALUE_LABELS,
-        INDICATOR_NAME_y,
-        INDEX,
-        ISSUE,
-        CATEGORY,
-        INDICATOR_CODE,
-        ADDRESS,
-        SOURCE_BODY,
-        INDICATOR_DESCRIPTION,
-        INDICATOR_EXPLANATION,
-        EXTRACTION_METHODOLOGY,
-        UNIT_MEASURE,
-        VALUE_ENCODING,
-        DIMENSION_VALUES_NORMALIZATION,
-        INVERT_NORMALIZATION,
-        INDICATOR_ID,
-        NA_ENCODING,
-        
-        **kwarg
-    ):
-        """
-        Maybe use:
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
-        less readable but shorter code
-        """
-        self.config = config
-        self.source_id = SOURCE_ID
-        self.source_type = SOURCE_TYPE
-        self.source_titel = SOURCE_TITLE
-        self.endpoint = ENDPOINT_URL
-        self.value_labels = VALUE_LABELS
-        self.indicator_name_y = INDICATOR_NAME_y
-        self.index = INDEX
-        self.issue = ISSUE
-        self.category = CATEGORY
-        self.indicator_code = INDICATOR_CODE
-        self.address = ADDRESS
-        self.source_body = SOURCE_BODY
-        self.indicator_description = INDICATOR_DESCRIPTION
-        self.indicator_explanation = INDICATOR_EXPLANATION
-        self.extraction_methodology = EXTRACTION_METHODOLOGY
-        self.unit_measure = UNIT_MEASURE
-        self.value_encoding = VALUE_ENCODING
-        self.dimension_values_normalization = DIMENSION_VALUES_NORMALIZATION
-        self.invert_normalization = INVERT_NORMALIZATION
-        self.indicator_id = INDICATOR_ID
+    def __init__(self,config, NA_ENCODING,**kwarg):
+        super().__init__(config,**kwarg)
+
         self.na_encoding = NA_ENCODING
 
-
-    def data(self):
+    
+    def _download(self):
         # Extract data and convert to pandas dataframe
         try:
             # Most json data is from SDG; which deturn json with key "data" having the data as value
@@ -76,55 +27,55 @@ class DefaultJsonExtractor(Extractor):
 
         return raw_data
 
-    def _extract(self):
-        dataframe = self.data()
+    def _transform(self):
+
         # Save dataframe
-        dataframe.to_csv(
-            self.config.data_sources_raw / str(self.source_id + "_raw.csv"),
-            sep = ";")
+        #self.dataframe.to_csv(
+        #    self.config.data_sources_raw / str(self.source_id + "_raw.csv"),
+        #    sep = ";")
         
         # Log that we are entering cleasning
         # print("\n - - - - - \n Cleansing source {} \n".format(self.source_id))
         
         # Cleansing in 
-        dataframe = cleanse.Cleanser().extract_who_raw_data(
-            raw_data=dataframe,
+        self.dataframe = Cleanser().extract_who_raw_data(
+            raw_data=self.dataframe,
             variable_type = self.value_labels,
             display_value_col="Display Value"
         )
         
-        dataframe = cleanse.Cleanser().rename_and_discard_columns(
-            raw_data=dataframe,
+        self.dataframe = Cleanser().rename_and_discard_columns(
+            raw_data=self.dataframe,
             mapping_dictionary=self.config.mapping_dict,
             final_sdmx_col_list=self.config.sdmx_df_columns_all
         )
 
-        dataframe = cleanse.Cleanser().convert_nan_strings_into_nan(
-            dataframe = dataframe
+        self.dataframe = Cleanser().convert_nan_strings_into_nan(
+            dataframe = self.dataframe
         )
 
-        dataframe = cleanse.Cleanser().extract_year_from_timeperiod(
-            dataframe=dataframe,
+        self.dataframe = Cleanser().extract_year_from_timeperiod(
+            dataframe=self.dataframe,
             year_col="TIME_PERIOD",
             time_cov_col="COVERAGE_TIME"
         )
 
-        dataframe = cleanse.Cleanser().retrieve_latest_observation(
-            renamed_data=dataframe,
+        self.dataframe = Cleanser().retrieve_latest_observation(
+            renamed_data=self.dataframe,
             dim_cols = self.config.sdmx_df_columns_dims,
             country_cols = self.config.sdmx_df_columns_country,
             time_cols = self.config.sdmx_df_columns_time,
             attr_cols=self.config.sdmx_df_columns_attr,
         )
 
-        dataframe = cleanse.Cleanser().add_and_discard_countries(
-            grouped_data=dataframe,
+        self.dataframe = Cleanser().add_and_discard_countries(
+            grouped_data=self.dataframe,
             crba_country_list=self.config.country_crba_list,
             country_list_full = self.config.country_full_list
         )
 
-        dataframe = cleanse.Cleanser().add_cols_fill_cells(
-            grouped_data_iso_filt=dataframe,
+        self.dataframe = Cleanser().add_cols_fill_cells(
+            grouped_data_iso_filt=self.dataframe,
             dim_cols=self.config.sdmx_df_columns_dims,
             time_cols=self.config.sdmx_df_columns_time,
             indicator_name_string=self.indicator_name_y,
@@ -142,20 +93,20 @@ class DefaultJsonExtractor(Extractor):
             attribute_unit_string=self.unit_measure
         )
 
-        dataframe = cleanse.Cleanser().map_values(
-            cleansed_data = dataframe,
+        self.dataframe = Cleanser().map_values(
+            cleansed_data = self.dataframe,
             value_mapping_dict = self.config.value_mapper
         )
         
-        dataframe_cleansed = cleanse.Cleanser().encode_categorical_variables(
-            dataframe = dataframe,
+        self.dataframe = Cleanser().encode_categorical_variables(
+            dataframe = self.dataframe,
             encoding_string = self.value_encoding,
             encoding_labels = self.value_labels,
             na_encodings = self.na_encoding
         )
 
-        dataframe_cleansed = cleanse.Cleanser().create_log_report_delete_duplicates(
-            cleansed_data=dataframe_cleansed
+        self.dataframe = Cleanser().create_log_report_delete_duplicates(
+            cleansed_data=self.dataframe
         )
 
         # Append dataframe to combined dataframe
@@ -164,13 +115,13 @@ class DefaultJsonExtractor(Extractor):
         #)
 
         # Save cleansed data
-        dataframe_cleansed.to_csv(
-            self.config.data_sources_cleansed / str(self.source_id + "_cleansed.csv"),
-            sep = ";")
+        #self.dataframe.to_csv(
+        #    self.config.data_sources_cleansed / str(self.source_id + "_cleansed.csv"),
+        #    sep = ";")
         
         # Normalizing section
-        dataframe_normalized = scaler.normalizer(
-            cleansed_data = dataframe_cleansed,
+        self.dataframe = scaler.normalizer(
+            cleansed_data = self.dataframe,
             sql_subset_query_string=self.dimension_values_normalization,
             # dim_cols=sdmx_df_columns_dims,
             variable_type =self.value_labels,
@@ -181,8 +132,8 @@ class DefaultJsonExtractor(Extractor):
             maximum_score=10,
             )
         
-        dataframe_normalized.to_csv(
-            self.config.data_sources_normalized / str(self.indicator_id + '_' + self.source_id + '_' + self.indicator_code + "_normalized.csv"),
-            sep = ";")
+        #self.dataframe.to_csv(
+        #    self.config.data_sources_normalized / str(self.indicator_id + '_' + self.source_id + '_' + self.indicator_code + "_normalized.csv"),
+        #    sep = ";")
             
-        return dataframe_normalized
+        return self.dataframe
