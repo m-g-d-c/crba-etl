@@ -9,7 +9,7 @@ from crba_project.extractor import ExtractionError
 root_package = __name__.split(".")[0]
 
 
-
+#TODO https://pypi.org/project/csv-logger/
 def configure_exception_log_handler(config):
     #TODO Make the output more readable
     class CsvFormatter(logging.Formatter):
@@ -88,3 +88,8 @@ def configure_log_flow_stdout(log_level):
     stout_logs = logging.StreamHandler(stream=sys.stdout)
     stout_logs.setFormatter(NoStackTraceFormatter())
     logging.getLogger(root_package).addHandler(stout_logs)
+
+def configure_log_flow_full(config):
+    extraction_error_log_handler = logging.FileHandler(f"{config.output_dir}/{config.run_id}/logs/full.log")
+    
+    logging.getLogger(root_package).addHandler(extraction_error_log_handler)

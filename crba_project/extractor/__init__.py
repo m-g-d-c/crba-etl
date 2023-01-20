@@ -3,6 +3,9 @@ import logging
 
 import requests
 import pandas as pd
+import great_expectations as gx
+from great_expectations.core.batch import RuntimeBatchRequest
+from great_expectations.checkpoint.types.checkpoint_result import CheckpointResult
 
 from crba_project.conf import Config
 
@@ -19,6 +22,7 @@ class Extractor(ABC):
     """
     Maybe subcalss from Pandas Dataframe?!?!?
     """
+
     @classmethod
     def api_request(cls, address, params=None, headers=None):
         """
@@ -85,12 +89,35 @@ class Extractor(ABC):
         
         #TODO establish Great Expectation to validate sources  
         assert len(self.dataframe) > 0, "The source has not provided any data  "
+        
+
         return self
 
     def transform(self):
         ##TODO do not reassign Dataframe but instead edit in place
         self.dataframe = self._transform()
+        self.dataframe["SOURCE_ID"] = self.source_id
         return self
+
+
+    # def run_greate_expectation_checkpoint(self):
+    #     batch_request = RuntimeBatchRequest(
+    #         datasource_name="default_datasource",
+    #         data_connector_name="default_runtime_data_connector",
+    #         data_asset_name=self.source_id,  # This can be anything that identifies this data_asset for you
+    #         runtime_parameters={"batch_data": self.dataframe},  # df is your dataframe
+    #         batch_identifiers={"default_identifier_name": "default_identifier"},
+    #     )
+
+    #     result: CheckpointResult = self.config.ge_context.run_checkpoint(
+    #         checkpoint_name="indicator_sdmx_checkpoint",
+    #         validations=batch_request,
+    #         run_name=f"{self.source_id}-{self.config.run_id}",
+    #     )
+    #     if not result["success"]:
+    #         log.warn("Validation failed!")
+            
+
 
     def get(self):
         """
@@ -100,6 +127,8 @@ class Extractor(ABC):
         try:
             self.download() \
                 .transform()
+
+            #self.run_greate_expectation_checkpoint()
             return self.dataframe
         except Exception as ex:
             #Store all Data processed until now to help debugging

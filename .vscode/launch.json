@@ -12,7 +12,7 @@
             "program": "crba_project",
             "console": "integratedTerminal",
             "justMyCode": false,
-            "args": ["-l", "25" ,"-c" ,"-f" ,"data_out/0c551277-6b07-4a45-a597-87dd680c88ea/logs/extractor_error_short.log"]
+            "args": ["-l", "25" ,"-c" ,"-f" ,"samples/filter_csv.csv"]
         },
         {
             "name": "CRBA Debug no Filter",

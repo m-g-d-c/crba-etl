@@ -3,34 +3,29 @@ Module
 
 
 """
-import re
+import argparse
+import csv
+import importlib
 import io
+import logging
+import re
+import uuid
+import warnings
+from pathlib import Path
+from typing import Type
 
+import great_expectations as gx
+import pandas as pd
+from great_expectations.checkpoint.types.checkpoint_result import \
+    CheckpointResult
+from great_expectations.core.batch import RuntimeBatchRequest
 from tqdm.autonotebook import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
-import importlib
-import argparse
-from typing import Type
-import uuid
-from pathlib import Path
-import logging
-import warnings
-import pandas as pd
 
 from crba_project.conf import Config
 from crba_project.extractor import ExtractionError
 
 log = logging.getLogger(__name__)
-
-def build_and_bootstrap_config(input_dir="data_in",output_dir="data_out", caching=True, filter=None ,run_id=None):
-    if run_id==None:
-        #TODO replace by datetime string
-        run_id = str(uuid.uuid4())
-
-    config = Config(Path(input_dir),Path(output_dir),run_id)
-    config.bootstrap(caching=caching)
-    config.build_source_config(filter)
-    return config
 
 def dynamic_load(class_path) -> Type:
     mod = ".".join(class_path.split(".")[:-1])
@@ -43,6 +38,8 @@ def build_combined_normalized_csv(config):
     ##TODO Parallelisiere . Prozess vs Thread. Probably Thread because of heavy IO Tasks concurrent.futures
     extractions_data = []
     extraction_errors_source_ids =[]
+
+    validation_batches = []
 
     stats = {}
 
@@ -62,12 +59,36 @@ def build_combined_normalized_csv(config):
                         msg=f"Source {row['SOURCE_ID']} extract with {df.shape if df is not None else 0}::: {extractor.__class__.__name__}",
                     )
                     extractions_data.append(df)
+
+                    validation_batches.append(
+                        {"batch_request": 
+                            RuntimeBatchRequest(
+                            datasource_name="default_datasource",
+                            data_connector_name="default_runtime_data_connector",
+                            data_asset_name=row["SOURCE_ID"],  # This can be anything that identifies this data_asset for you
+                            runtime_parameters={"batch_data": df},  # df is your dataframe
+                            batch_identifiers={"default_identifier_name": "default_identifier"},
+                        )
+                        }
+                    )
+
                 except ExtractionError as ex:
                     extraction_errors_source_ids.append(row["SOURCE_ID"])
                     stats[row["SOURCE_ID"]] = {"error":str(ex)}
                     log.warning(
                         f"{str(ex)}", exc_info=True
                     )
+    # run GX validation
+    try:
+        result: CheckpointResult = config.ge_context.run_checkpoint(
+            checkpoint_name="indicator_sdmx_checkpoint",
+            validations=validation_batches,
+            run_name=f"{config.run_id}",
+        )
+        if not result["success"]:
+            log.warn("Validation failed!")
+    except gx.exceptions.exceptions.CheckpointError as ex:
+        log.warn(f"Checkint validation Failed by Exception:{ex}",exc_info=ex)
 
     return pd.concat(extractions_data, axis=0, ignore_index=True) ,extraction_errors_source_ids,stats
 
@@ -289,24 +310,25 @@ def aggregate_combined_normalized_csv(config,combined_normalized_csv):
         
     aggregated_scores_dataset.to_csv(
         path_or_buf = config.output_dir / config.run_id / 'aggregated_scores.csv',
-        sep = ";"
+        sep = ";",
+        quoting=csv.QUOTE_ALL
     )
 
 
     return crba_final,aggregated_scores_dataset 
 
-def generate_stats(config,stats):
-    
-    pd.from_dict(stats)
-
-
-
+def generate_stats(config,final_crba):
+    config.source_config
 
 def run(config):
     combined_normalized_csv, extraction_errors_source_ids,stats = build_combined_normalized_csv(config)
 
+    combined_normalized_csv.to_csv(
+        path_or_buf = config.output_dir / config.run_id / 'combined_normalized.csv',
+        sep = ";",
+        quoting=csv.QUOTE_ALL
+    )
+
     print(combined_normalized_csv.info())
 
     crba_final,aggregated_scores_dataset = aggregate_combined_normalized_csv(config,combined_normalized_csv)
-
-

@@ -1,0 +1,312 @@
+{
+     "data_asset_type": null,
+     "expectation_suite_name": "sdmx_indicator_suite",
+     "expectations": [
+          {
+               "expectation_type": "expect_column_values_to_not_be_null",
+               "kwargs": {
+                    "column": "COUNTRY_ISO_3"
+               },
+               "meta": {
+                    "profiler_details": {
+                         "metric_configuration": {
+                              "domain_kwargs": {
+                                   "column": "COUNTRY_ISO_3"
+                              },
+                              "metric_name": "column_values.nonnull.unexpected_count",
+                              "metric_value_kwargs": null
+                         },
+                         "num_batches": 2
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_not_be_null",
+               "kwargs": {
+                    "column": "INDICATOR_INDEX"
+               },
+               "meta": {
+                    "profiler_details": {
+                         "metric_configuration": {
+                              "domain_kwargs": {
+                                   "column": "INDICATOR_INDEX"
+                              },
+                              "metric_name": "column_values.nonnull.unexpected_count",
+                              "metric_value_kwargs": null
+                         },
+                         "num_batches": 2
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_not_be_null",
+               "kwargs": {
+                    "column": "INDICATOR_ISSUE"
+               },
+               "meta": {
+                    "profiler_details": {
+                         "metric_configuration": {
+                              "domain_kwargs": {
+                                   "column": "INDICATOR_ISSUE"
+                              },
+                              "metric_name": "column_values.nonnull.unexpected_count",
+                              "metric_value_kwargs": null
+                         },
+                         "num_batches": 2
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_not_be_null",
+               "kwargs": {
+                    "column": "INDICATOR_CATEGORY"
+               },
+               "meta": {
+                    "profiler_details": {
+                         "metric_configuration": {
+                              "domain_kwargs": {
+                                   "column": "INDICATOR_CATEGORY"
+                              },
+                              "metric_name": "column_values.nonnull.unexpected_count",
+                              "metric_value_kwargs": null
+                         },
+                         "num_batches": 2
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_between",
+               "kwargs": {
+                    "column": "TIME_PERIOD",
+                    "max_value": 2023.0,
+                    "min_value": 1007.0,
+                    "mostly": 1.0,
+                    "strict_max": false,
+                    "strict_min": false
+               },
+               "meta": {
+                    "profiler_details": {
+                         "column_max_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "TIME_PERIOD"
+                                   },
+                                   "metric_name": "column.max",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         },
+                         "column_min_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "TIME_PERIOD"
+                                   },
+                                   "metric_name": "column.min",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         }
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_between",
+               "kwargs": {
+                    "column": "CRBA_RELEASE_YEAR",
+                    "max_value": 2023,
+                    "min_value": 2023,
+                    "mostly": 1.0,
+                    "strict_max": false,
+                    "strict_min": false
+               },
+               "meta": {
+                    "profiler_details": {
+                         "column_max_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "CRBA_RELEASE_YEAR"
+                                   },
+                                   "metric_name": "column.max",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         },
+                         "column_min_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "CRBA_RELEASE_YEAR"
+                                   },
+                                   "metric_name": "column.min",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         }
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_between",
+               "kwargs": {
+                    "column": "RAW_OBS_VALUE",
+                    "max_value": 93081.83120202998,
+                    "min_value": -2.68323922157288,
+                    "mostly": 1.0,
+                    "strict_max": false,
+                    "strict_min": false
+               },
+               "meta": {
+                    "profiler_details": {
+                         "column_max_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "RAW_OBS_VALUE"
+                                   },
+                                   "metric_name": "column.max",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         },
+                         "column_min_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "RAW_OBS_VALUE"
+                                   },
+                                   "metric_name": "column.min",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         }
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_between",
+               "kwargs": {
+                    "column": "SCALED_OBS_VALUE",
+                    "max_value": 10.0,
+                    "min_value": 0.0,
+                    "mostly": 1.0,
+                    "strict_max": false,
+                    "strict_min": false
+               },
+               "meta": {
+                    "profiler_details": {
+                         "column_max_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "SCALED_OBS_VALUE"
+                                   },
+                                   "metric_name": "column.max",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         },
+                         "column_min_values_range_estimator": {
+                              "metric_configuration": {
+                                   "domain_kwargs": {
+                                        "column": "SCALED_OBS_VALUE"
+                                   },
+                                   "metric_name": "column.min",
+                                   "metric_value_kwargs": null
+                              },
+                              "num_batches": 2
+                         }
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_in_set",
+               "kwargs": {
+                    "column": "INDICATOR_INDEX",
+                    "mostly": 1.0,
+                    "value_set": [
+                         "Community and Environment",
+                         "Workplace",
+                         "Marketplace"
+                    ]
+               },
+               "meta": {
+                    "profiler_details": {
+                         "metric_configuration": {
+                              "domain_kwargs": {
+                                   "column": "INDICATOR_INDEX"
+                              },
+                              "metric_name": "column.distinct_values",
+                              "metric_value_kwargs": null
+                         },
+                         "num_batches": 2,
+                         "parse_strings_as_datetimes": false
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_in_set",
+               "kwargs": {
+                    "column": "INDICATOR_ISSUE",
+                    "mostly": 1.0,
+                    "value_set": [
+                         "Maternity and paternity protection",
+                         "Natural disasters",
+                         "Product Safety",
+                         "Child labour",
+                         "Resource use and damage to the environment",
+                         "Online Abuse and exploitation",
+                         "Marketing and Advertising",
+                         "Land rights",
+                         "Decent working conditions",
+                         "Security arrangements",
+                         "Fulfillment of children\u2019s rights"
+                    ]
+               },
+               "meta": {
+                    "profiler_details": {
+                         "metric_configuration": {
+                              "domain_kwargs": {
+                                   "column": "INDICATOR_ISSUE"
+                              },
+                              "metric_name": "column.distinct_values",
+                              "metric_value_kwargs": null
+                         },
+                         "num_batches": 2,
+                         "parse_strings_as_datetimes": false
+                    }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_in_set",
+               "kwargs": {
+                    "column": "INDICATOR_CATEGORY",
+                    "mostly": 1.0,
+                    "value_set": [
+                         "Legal framework national",
+                         "Outcome",
+                         "Legal framework international",
+                         "Enforcement"
+                    ]
+               },
+               "meta": {
+                    "profiler_details": {
+                         "metric_configuration": {
+                              "domain_kwargs": {
+                                   "column": "INDICATOR_CATEGORY"
+                              },
+                              "metric_name": "column.distinct_values",
+                              "metric_value_kwargs": null
+                         },
+                         "num_batches": 2,
+                         "parse_strings_as_datetimes": false
+                    }
+               }
+          }
+     ],
+     "ge_cloud_id": null,
+     "meta": {
+          "citations": [
+               {
+                    "citation_date": "2023-01-12T19:11:58.392260Z",
+                    "comment": "Created by effective Rule-Based Profiler of OnboardingDataAssistant with the configuration included.\n"
+               }
+          ],
+          "great_expectations_version": "0.15.42"
+     }
+}
