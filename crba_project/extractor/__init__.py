@@ -81,12 +81,12 @@ class Extractor(ABC):
         self.dimension_values_normalization = DIMENSION_VALUES_NORMALIZATION
         self.invert_normalization = INVERT_NORMALIZATION
         self.indicator_id = INDICATOR_ID
-
+        self.url_params = {key.replace("urlparam_",""):value for key, value in kwargs.items() if key.startswith("urlparam_")}
                     
 
     def download(self):
+        self.endpoint = self.endpoint.format(**self.url_params)
         self.dataframe = self._download()
-        
         #TODO establish Great Expectation to validate sources  
         assert len(self.dataframe) > 0, "The source has not provided any data  "
         
