@@ -394,8 +394,8 @@ mapping_dict = {}
 for mapper_tuple in mapper_tuple_list:
     mapping_dict.update(mapper_tuple)
 
-with open("mapping_dict.json", "w") as fp:
-    json.dump(mapping_dict, fp)
+#with open("mapping_dict.json", "w") as fp:
+#    json.dump(mapping_dict, fp)
 
 # Define list of columns in the final dataframe
 # Country columns
