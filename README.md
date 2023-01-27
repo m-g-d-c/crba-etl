@@ -17,7 +17,7 @@ In the indicator sheet there need to be a column with the name `param_<var_name>
 ## Validation with Greate Expectation: 
 The Greate Expectation Framework is used to validate the downloaded data. 
 To use the interactive notebooks the following call logic is needed 
-`` great_expectations -c crba_project/resources/great_expectations ...``
+`` great_expectations -c $(pwd)/crba_project/resources/great_expectations ...``
 
 TODO: 
 - Think about the config sigelton pattern https://charlesreid1.github.io/a-singleton-configuration-class-in-python.htm

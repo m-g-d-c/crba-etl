@@ -1,6 +1,8 @@
 import atexit
+import os
 
 import argparse
+from pathlib import Path
 
 from crba_project.conf import Config
 import crba_project.etl
@@ -52,6 +54,9 @@ def parse_args():
 
     return parser.parse_args()
 
+def create_symlink_latest(config):
+    os.system(f'cd {config.output_dir} && ln -sfT {config.run_id} {"latest"}')
+
 
 if __name__ == "__main__":
     # Initialize parser
@@ -63,8 +68,9 @@ if __name__ == "__main__":
 
     def exit_handler():
         print(config.run_id)
-    atexit.register(exit_handler)
 
+    atexit.register(exit_handler)
+    atexit.register(create_symlink_latest,config)
     #Configure global Logging
     configure_log_flow_stdout(args.LogLevel)
     configure_exception_log_handler(config)

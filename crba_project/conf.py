@@ -54,6 +54,7 @@ class Config:
         if caching:
             self.use_caching()
 
+
     def create_output_dir(self):
         # Folder containing manually extracted raw data, ready to be put in the loop
         # self.data_sources_staged_raw =  self.output_dir / self.run_id / 'data_staged_raw'
@@ -325,7 +326,7 @@ class Config:
     
     def load_ge_context(self):
         with res_path("crba_project.resources","great_expectations") as p:
-            self.ge_context = gx.get_context(context_root_dir=p)
+            self.ge_context = gx.get_context(context_root_dir=p,runtime_environment={'output_dir':f"{os.path.abspath(self.output_dir)}"})
 
         #self.ge_context.variables.data_docs_sites["local_site"]["store_backend"]["base_directory"] = self.output_dir.resolve() / "data_docs"
         #self.ge_context.config.data_docs_sites["local_site"]["store_backend"]["base_directory"] = self.output_dir.resolve() / "data_docs"

@@ -78,6 +78,8 @@ def build_combined_normalized_csv(config):
                     log.warning(
                         f"{str(ex)}", exc_info=True
                     )
+                except ValueError as ex:
+                    log.exception(ex)
     # run GX validation
     try:
         result: CheckpointResult = config.ge_context.run_checkpoint(
