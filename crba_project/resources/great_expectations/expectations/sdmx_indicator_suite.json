@@ -1,23 +1,33 @@
 {
      "data_asset_type": null,
      "expectation_suite_name": "sdmx_indicator_suite",
-     "expectations": [
+     "expectations": [ 
           {
-               "expectation_type": "expect_column_values_to_not_be_null",
+               "expectation_type": "expect_table_row_count_to_equal",
                "kwargs": {
-                    "column": "COUNTRY_ISO_3"
-               },
-               "meta": {
-                    "profiler_details": {
-                         "metric_configuration": {
-                              "domain_kwargs": {
-                                   "column": "COUNTRY_ISO_3"
-                              },
-                              "metric_name": "column_values.nonnull.unexpected_count",
-                              "metric_value_kwargs": null
-                         },
-                         "num_batches": 2
-                    }
+                    "value": 195,
+                    "mostly": 1.0
+               }
+          },
+          {
+               "expectation_type": "expect_table_columns_to_match_set",
+               "kwargs": {
+                    "column_set": ["ATTR_API_ENDPOINT_URL", 
+                    "ATTR_DATA_EXTRACTION_METHDOLOGY", "ATTR_INDICATOR_DESCRIPTION", 
+                    "ATTR_INDICATOR_EXPLANATION", "ATTR_SOURCE", "ATTR_SOURCE_BODY", 
+                    "ATTR_SOURCE_TITLE", "ATTR_UNIT_MEASURE", "COUNTRY_ISO_3", 
+                    "CRBA_RELEASE_YEAR", "INDICATOR_CATEGORY", "INDICATOR_CODE", 
+                    "INDICATOR_INDEX", "INDICATOR_ISSUE", "INDICATOR_NAME", "OBS_STATUS", 
+                    "RAW_OBS_VALUE", "SCALED_OBS_VALUE", "SOURCE_ID", "TIME_PERIOD"],
+                    "exact_match": false
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_be_in_set",
+               "kwargs": {
+                    "column": "COUNTRY_ISO_3",
+                    "mostly": 1.0,
+                    "value_set": ["ABW","AFG","AFG","AGO","AGO","AIA","ALA","ALB","ALB","AND","AND","ANT","ANT","ARE","ARE","ARG","ARG","ARM","ARM","ASM","ATA","ATF","ATG","ATG","AUS","AUS","AUT","AUT","AZE","AZE","BDI","BDI","BEL","BEL","BEN","BEN","BES","BFA","BGD","BGD","BGR","BGR","BHR","BHR","BHS","BHS","BHS","BIH","BIH","BLM","BLR","BLR","BLZ","BMU","BOL","BOL","BOL","BOL","BRA","BRA","BRB","BRN","BRN","BTN","BTN","BVT","BWA","BWA","CAF","CAF","CAN","CAN","CCK","CCK","CHE","CHE","CHL","CHL","CHN","CHN","CIV","CIV","CIV","CIV","CIV","CIV","CIV","CMR","CMR","COD","COD","COD","COD","COD","COD","COG","COG","COG","COG","COK","COK","COL","COL","COM","COM","CPV","CPV","CPV","CRI","CRI","CUB","CUB","CUW","CUW","CXR","CYM","CYP","CYP","CZE","CZE","CZE","DEU","DEU","DJI","DJI","DMA","DMA","DNK","DNK","DOM","DOM","DZA","DZA","ECU","ECU","EGY","EGY","EGY","ERI","ERI","ESH","ESP","ESP","EST","EST","ETH","ETH","FIN","FIN","FJI","FJI","FLK","FLK","FRA","FRA","FRO","FSM","FSM","FSM","FSM","FSM","FSM","GAB","GAB","GBR","GBR","GBR","GEO","GGY","GHA","GHA","GIB","GIB","GIN","GIN","GLP","GMB","GMB","GMB","GNB","GNB","GNB","GNQ","GNQ","GRC","GRC","GRD","GRL","GTM","GTM","GUF","GUM","GUY","GUY","HKG","HKG","HKG","HKG","HKG","HMD","HND","HND","HRV","HRV","HTI","HTI","HUN","IDN","IDN","IMN","IND","IND","IOT","IRL","IRN","IRN","IRN","IRN","IRN","IRQ","IRQ","ISL","ISL","ISR","ISR","ITA","ITA","JAM","JEY","JOR","JOR","JPN","KAZ","KAZ","KEN","KEN","KGZ","KGZ","KGZ","KHM","KHM","KIR","KIR","KNA","KNA","KNA","KNA","KOR","KOR","KOR","KOR","KOR","KOR","KWT","KWT","LAO","LAO","LAO","LAO","LBN","LBN","LBR","LBR","LBY","LBY","LCA","LCA","LIE","LIE","LKA","LKA","LSO","LSO","LTU","LTU","LUX","LUX","LVA","LVA","MAC","MAC","MAC","MAC","MAF","MAR","MAR","MCO","MCO","MDA","MDA","MDA","MDA","MDG","MDG","MDV","MDV","MEX","MEX","MHL","MHL","MKD","MKD","MKD","MKD","MLI","MLI","MLT","MLT","MMR","MMR","MMR","MNE","MNG","MNP","MNP","MOZ","MOZ","MRT","MRT","MSR","MTQ","MUS","MUS","MWI","MWI","MYS","MYT","NAM","NAM","NCL","NER","NER","NFK","NGA","NGA","NIC","NIC","NIU","NLD","NLD","NOR","NOR","NPL","NPL","NRU","NRU","NZL","OMN","OMN","PAK","PAK","PAN","PAN","PCN","PCN","PER","PER","PHL","PHL","PLW","PLW","PNG","PNG","POL","POL","PRI","PRK","PRK","PRK","PRK","PRK","PRK","PRK","PRT","PRT","PRY","PRY","PSE","PSE","PSE","PSE","PSE","PYF","QAT","QAT","REU","REU","ROU","RUS","RUS","RUS","RWA","RWA","SAU","SAU","SDN","SDN","SEN","SEN","SGP","SGP","SGS","SGS","SHN","SHN","SHN","SJM","SLB","SLE","SLE","SLV","SLV","SMR","SMR","SOM","SOM","SPM","SRB","SRB","SSD","SSD","SSD","STP","STP","STP","STP","SUR","SUR","SVK","SVK","SVK","SVN","SVN","SWE","SWE","SWZ","SWZ","SWZ","SXM","SYC","SYC","SYR","SYR","SYR","TCA","TCA","TCD","TCD","TGO","TGO","THA","THA","TJK","TJK","TKL","TKM","TLS","TLS","TON","TON","TTO","TTO","TTO","TUN","TUN","TUR","TUR","TUV","TWN","TWN","TWN","TWN","TZA","TZA","TZA","TZA","UGA","UGA","UKR","UMI","UMI","URY","URY","USA","USA","USA","USA","UZB","UZB","VAT","VAT","VAT","VAT","VCT","VCT","VCT","VCT","VCT","VEN","VEN","VEN","VEN","VEN","VGB","VGB","VGB","VIR","VIR","VIR","VIR","VIR","VNM","VNM","VNM","VUT","VUT","WLF","WLF","WSM","WSM","XKX","YEM","YEM","YEM","YUG","ZAF","ZAF","ZMB","ZMB","ZWE","ZWE"]
                }
           },
           {
@@ -78,8 +88,8 @@
                "expectation_type": "expect_column_values_to_be_between",
                "kwargs": {
                     "column": "TIME_PERIOD",
-                    "max_value": 2023.0,
-                    "min_value": 1007.0,
+                    "max_value": 2024,
+                    "min_value": 2012,
                     "mostly": 1.0,
                     "strict_max": false,
                     "strict_min": false
@@ -113,8 +123,8 @@
                "expectation_type": "expect_column_values_to_be_between",
                "kwargs": {
                     "column": "CRBA_RELEASE_YEAR",
-                    "max_value": 2023,
-                    "min_value": 2023,
+                    "max_value": 2024,
+                    "min_value": 2022,
                     "mostly": 1.0,
                     "strict_max": false,
                     "strict_min": false
@@ -145,38 +155,13 @@
                }
           },
           {
-               "expectation_type": "expect_column_values_to_be_between",
+               "expectation_type": "expect_column_values_to_be_of_type",
                "kwargs": {
                     "column": "RAW_OBS_VALUE",
-                    "max_value": 93081.83120202998,
-                    "min_value": -2.68323922157288,
+                    "type_": "float64",
                     "mostly": 1.0,
                     "strict_max": false,
                     "strict_min": false
-               },
-               "meta": {
-                    "profiler_details": {
-                         "column_max_values_range_estimator": {
-                              "metric_configuration": {
-                                   "domain_kwargs": {
-                                        "column": "RAW_OBS_VALUE"
-                                   },
-                                   "metric_name": "column.max",
-                                   "metric_value_kwargs": null
-                              },
-                              "num_batches": 2
-                         },
-                         "column_min_values_range_estimator": {
-                              "metric_configuration": {
-                                   "domain_kwargs": {
-                                        "column": "RAW_OBS_VALUE"
-                                   },
-                                   "metric_name": "column.min",
-                                   "metric_value_kwargs": null
-                              },
-                              "num_batches": 2
-                         }
-                    }
                }
           },
           {
@@ -296,6 +281,12 @@
                          "num_batches": 2,
                          "parse_strings_as_datetimes": false
                     }
+               }
+          },
+          {
+               "expectation_type": "expect_column_values_to_not_be_null",
+               "kwargs": {
+                    "column": "INDICATOR_NAME"
                }
           }
      ],

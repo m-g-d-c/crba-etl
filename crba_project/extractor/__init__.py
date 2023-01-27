@@ -128,6 +128,11 @@ class Extractor(ABC):
             self.download() \
                 .transform()
 
+            self.dataframe.to_csv(
+                path_or_buf = self.config.output_dir / self.config.run_id / 'sample_{self.source_id}.csv',
+                sep = ";",
+                quoting=1
+            )
             #self.run_greate_expectation_checkpoint()
             return self.dataframe
         except Exception as ex:
